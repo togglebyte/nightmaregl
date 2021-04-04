@@ -116,15 +116,9 @@ impl Text {
         self.sprites.iter().map(Sprite::vertex_data).collect()
     }
 
-    /// The total width of the text
-    pub fn width(&self) -> f32 {
-        match self.sprites.last() {
-            Some(s) => s.position.x + s.size.width,
-            None => {
-                eprintln!("{:?}", "last is zero");
-                0.0
-            }
-        }
+    /// Current caret
+    pub fn caret(&self) -> Position<f32> {
+        Position::new(self.caret.x, self.caret.y)
     }
 
 }
