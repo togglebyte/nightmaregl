@@ -98,8 +98,7 @@ impl Text {
         Ok(())
     }
 
-    /// The current position of the font.
-    /// This is based on the first sprite.
+    /// Set the position of the font.
     pub fn position(&mut self, position: Position<f32>) {
         self.position = position;
         self.sprites.iter_mut().for_each(|sprite| {
@@ -128,28 +127,6 @@ impl Text {
         }
     }
 
-    /// Dubious method that will most likely be removed
-    pub fn fits(&self, c: char, max_width: u32) -> bool {
-        if c.is_control() {
-            return true;
-        }
-
-        let width = self.width();
-        eprintln!("current width: {:?} | {:?}", width, max_width);
-
-        let base_glyph = self.font.inner.glyph(c);
-        let glyph = base_glyph.scaled(self.font.scale).positioned(self.caret);
-
-        match glyph.pixel_bounding_box() {
-            Some(bb) => bb.max.x <= max_width as i32,
-            None => {
-                eprintln!("here we are: {:?}", width,);
-                true
-            }
-        }
-
-    }
-    
 }
 
 // -----------------------------------------------------------------------------
