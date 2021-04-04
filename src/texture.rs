@@ -308,7 +308,7 @@ impl<T: Copy + NumCast> Texture<T> {
     pub fn write_region(&self, position: Position<T>, size: Size<T>, data: &[u8]) {
         self.bind();
 
-        debug_assert!(data.len() <= size.cast::<usize>().width * size.cast::<usize>().height);
+        debug_assert!(data.len() <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size());
 
         if let Format::Red = self.format {
             unsafe { self.align_for_write() };
