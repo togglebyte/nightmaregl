@@ -30,7 +30,7 @@ pub struct Renderer<T> {
     vbo: Vbo<T>,
     _quad_vbo: Vbo<Vertex>,
     shader_program: ShaderProgram,
-    pub pixel_size: f32,
+    pub pixel_size: u16,
 }
 
 impl<T: std::fmt::Debug> Renderer<T> {
@@ -66,7 +66,7 @@ impl<T: std::fmt::Debug> Renderer<T> {
             vbo,
             shader_program,
             _quad_vbo: quad_vbo,
-            pixel_size: 1.0,
+            pixel_size: 1,
         };
 
         Ok(inst)
@@ -112,7 +112,7 @@ impl<T: std::fmt::Debug> Renderer<T> {
 
         let pixel_scale_uniform_name = CStr::from_bytes_with_nul(b"pixel_scale\0").expect("invalid c string");
         self.shader_program
-            .set_uniform_float(self.pixel_size, pixel_scale_uniform_name)?;
+            .set_uniform_float(self.pixel_size as f32, pixel_scale_uniform_name)?;
 
         unsafe {
             glDrawArraysInstanced(

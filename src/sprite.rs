@@ -1,6 +1,6 @@
 use std::ops::MulAssign;
 
-use nalgebra::{Matrix4, Vector};
+use nalgebra::{Matrix4, Vector, Point3, Scalar};
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
@@ -25,11 +25,12 @@ pub struct Sprite<T> {
     pub texture_size: Size<T>,
     pub position: Position<T>,
     pub rotation: Rotation<T>,
+    pub anchor: Position<T>,
     pub texture_offset: Position<T>,
     pub z_index: T,
 }
 
-impl<T: Copy + NumCast + Zero + MulAssign> Sprite<T> {
+impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     /// Create a new sprite that has the size of the texture by default.
     /// To set the sprite to only show a portion of a texture set the 
     /// `texture_offset` value.
@@ -42,6 +43,7 @@ impl<T: Copy + NumCast + Zero + MulAssign> Sprite<T> {
             position: Position::zero(),
             rotation: Rotation::zero(),
             texture_offset: Position::zero(),
+            anchor: Position::zero(),
             z_index: T::zero(),
         }
     }
@@ -51,11 +53,15 @@ impl<T: Copy + NumCast + Zero + MulAssign> Sprite<T> {
         let position = self.position.to_f32();
         let size = self.size.to_f32();
         let rotation = self.rotation.to_f32();
+        let rotation = Vector::from([0.0, 0.0, rotation.radians]);
+        let anchor = self.anchor.to_f32();
+        let anchor = Point3::new(anchor.x, anchor.y, 0.0);
         Matrix4::new_translation(&Vector::from([
             position.x,
             position.y,
             self.z_index.to_f32().unwrap(),
-        ])) * Matrix4::new_rotation(Vector::from([0., 0., rotation.radians]))
+        ])) 
+            * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
     }
 

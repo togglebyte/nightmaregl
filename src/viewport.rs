@@ -1,4 +1,5 @@
 use nalgebra::Matrix4;
+use num_traits::NumCast;
 
 use crate::{Position, Size};
 
@@ -45,13 +46,18 @@ impl Viewport {
 
     /// Reszie the viewport.
     /// This will also update the projection.
-    pub fn resize(&mut self, new_size: Size<i32>) {
-        self.size = new_size;
+    pub fn resize<T: NumCast + Copy>(&mut self, new_size: Size<T>) {
+        self.size = new_size.cast();
         self.projection = projection(new_size.cast());
     }
 
     /// Get a reference to the size of the viewport.
     pub fn size(&self) -> &Size<i32> {
         &self.size
+    }
+
+    /// Get the middle of the viewport
+    pub fn centre(&self) -> Position<i32> {
+        Position::new(self.size.width / 2, self.size.height / 2)
     }
 }
