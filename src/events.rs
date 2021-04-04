@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 //! # Event loop
 use std::time::Instant;
 
@@ -19,12 +20,18 @@ pub enum LoopAction {
     Quit,
 }
 
+/// The event loop. See the [`run`] function for an example.
 pub struct EventLoop(pub(crate) glutin::event_loop::EventLoop<()>);
 
 /// An event provided by the event loop.
 pub enum Event {
     /// Any kid of key input. `state` is either `Pressed` or `Released`
-    KeyInput { key: Key, state: KeyState },
+    Key { 
+        /// Current key
+        key: Key,
+        /// The state of the key (pressed or released)
+        state: KeyState 
+    },
 
     /// A `char`, this will happen after the `KeyInput` so they are not exclusive
     Char(char),
@@ -73,7 +80,7 @@ impl EventLoop {
                     WindowEvent::ModifiersChanged(modifiers) => event_handler(Event::Modifier(modifiers)),
                     WindowEvent::KeyboardInput {
                         input: KeyboardInput { virtual_keycode: Some(keycode), state, ..  }, ..
-                    } => event_handler(Event::KeyInput { key: keycode, state }),
+                    } => event_handler(Event::Key { key: keycode, state }),
                     WindowEvent::Resized(new_size) => event_handler(Event::Resize(Size::new(new_size.width, new_size.height))),
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;

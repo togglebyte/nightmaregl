@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use nalgebra::Matrix4;
 use num_traits::NumCast;
 
@@ -14,6 +15,7 @@ use crate::{Position, Size};
 /// ```
 #[derive(Debug)]
 pub struct Viewport {
+    /// The screen position of the viewport
     pub position: Position<i32>,
     pub(crate) size: Size<i32>,
     pub(crate) view: Matrix4<f32>,

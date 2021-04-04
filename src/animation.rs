@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use num_traits::cast::NumCast;
 
 use crate::sprite::Sprite;
@@ -37,8 +38,11 @@ pub struct Animation<T> {
     stride: u16,
     current_frame: u16,
     max_frame: u16,
+    /// Should this animation loop?
     pub should_loop: bool,
+    /// The sprite the animation is acting upon
     pub sprite: Sprite<T>,
+    /// Number of frames per second
     pub fps: f32,
     elapsed: f32,
 }

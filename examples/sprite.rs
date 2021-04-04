@@ -59,7 +59,7 @@ fn main() -> Result<()> {
                 context.swap_buffers();
             }
             Event::Resize(size) => viewport.resize(size),
-            Event::KeyInput { key: Key::Escape, .. } => {
+            Event::Key { key: Key::Escape, .. } => {
                 return LoopAction::Quit;
             }
             _ => {}

@@ -1,3 +1,6 @@
+#![deny(missing_docs)]
+//! A texture can either be an image uploaded to the gpu, or it can something a frame buffer
+//! renders to.
 use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
@@ -27,7 +30,10 @@ impl OutputInfoExt for OutputInfo {
 /// Texture format.
 /// Currently only supports RGBA and Red
 pub enum Format {
+    /// RGBA values. This is most likely the format to use,
+    /// unless dealing with fonts.
     Rgba,
+    /// This is most likely used with text
     Red,
 }
 
@@ -79,8 +85,13 @@ pub enum Filter {
 // -----------------------------------------------------------------------------
 //     - Texture builder -
 // -----------------------------------------------------------------------------
+/// Texture builder that is missing a format.
 pub struct NoFormat;
+/// A texture builder that has a format set.
 pub struct WithFormat(Format);
+
+/// A texture builder.
+/// To create a texture builder use [`Texture::new`].
 pub struct TextureBuilder<T>(u32, T);
 
 impl TextureBuilder<NoFormat> {

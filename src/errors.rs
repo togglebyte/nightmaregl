@@ -34,15 +34,9 @@ pub enum NightmareError {
     #[error(transparent)]
     ContextError(#[from] ContextError),
 
-    // Os(String),
-
-    // ContextLost,
-    // FunctionUnavailable,
-
     #[error("Shader failure")]
     Shader(String),
 
     #[error("Shader program failure")]
     ShaderProgram(String),
-    // Font(FontError),
 }

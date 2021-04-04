@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
 use crate::{Color, Size};
@@ -9,9 +10,13 @@ use crate::{Color, Size};
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
 /// A pixel, as a set of rgba colours.
 pub struct Pixel {
+    /// Red
     pub r: u8,
+    /// Green
     pub g: u8,
+    /// Blue
     pub b: u8,
+    /// Alpha
     pub a: u8,
 }
 

@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use gl33::global_loader::*;
 use gl33::*;
 use num_traits::cast::NumCast;
@@ -19,20 +20,25 @@ pub struct Framebuffer {
 }
 
 impl Framebuffer {
+    /// Create a new framebuffer
     pub fn new() -> Self {
         let mut id = 0;
         unsafe { glGenFramebuffers(1, &mut id) };
         Self { id }
     }
 
+    /// Bind this framebuffer, making all subsequent draw calls act
+    /// on this buffer.
     pub fn bind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, self.id) };
     }
 
+    /// Unbind this buffer.
     pub fn unbind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, 0) };
     }
 
+    /// Attach a texture to this frame buffer to render to.
     pub fn attach_texture<T: Copy + NumCast>(&self, texture: &Texture<T>) {
         self.bind();
 

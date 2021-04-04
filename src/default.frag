@@ -2,7 +2,6 @@
 
 out vec4 colour;
 in vec2 tex_coords;
-in float pixel_scale_f; 
 
 uniform sampler2D tex;
 

@@ -1,3 +1,6 @@
+#![deny(missing_docs)]
+//! # Text rendering
+//! This is a hot mess
 use std::path::Path;
 use std::sync::Arc;
 use std::fs::read as read_file;
@@ -82,6 +85,7 @@ impl Text {
         }
     }
 
+    /// Get a copy of the font
     pub fn font(&self) -> Arc<Font> {
         Arc::clone(&self.font)
     }
@@ -94,6 +98,8 @@ impl Text {
         Ok(())
     }
 
+    /// The current position of the font.
+    /// This is based on the first sprite.
     pub fn position(&mut self, position: Position<f32>) {
         self.position = position;
         self.sprites.iter_mut().for_each(|sprite| {
@@ -101,14 +107,17 @@ impl Text {
         });
     }
 
+    /// The texture for the font
     pub fn texture(&self) -> &Texture<f32> { 
         &self.cache.texture
     }
 
+    /// Vertex data used to position the font
     pub fn vertex_data(&self) -> Vec<VertexData> {
         self.sprites.iter().map(Sprite::vertex_data).collect()
     }
 
+    /// The total width of the text
     pub fn width(&self) -> f32 {
         match self.sprites.last() {
             Some(s) => s.position.x + s.size.width,
@@ -119,6 +128,7 @@ impl Text {
         }
     }
 
+    /// Dubious method that will most likely be removed
     pub fn fits(&self, c: char, max_width: u32) -> bool {
         if c.is_control() {
             return true;
@@ -299,6 +309,7 @@ impl Text {
 // -----------------------------------------------------------------------------
 //     - Font -
 // -----------------------------------------------------------------------------
+/// A font
 pub struct Font {
     scale: Scale,
     inner: RustTypeFont<'static>,
@@ -306,6 +317,9 @@ pub struct Font {
 }
 
 impl Font {
+    /// Create a font from a font path.
+    /// This will perform disk i/o and is not recommended to run in the middle
+    /// of something critical.
     pub fn from_path(path: impl AsRef<Path>, font_size: f32) -> Result<Self> {
         let font_data = read_file(path)?;
 

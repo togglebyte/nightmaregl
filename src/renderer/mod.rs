@@ -17,6 +17,7 @@ pub use shaders::{FragmentShader, Shader, ShaderProgram, VertexShader};
 pub struct Vbo<T>(pub(crate) u32, PhantomData<T>);
 
 impl<T> Vbo<T> {
+    /// Create a new vertex buffer object
     pub fn new(vbo: u32) -> Self {
         Self(vbo, PhantomData)
     }
@@ -25,6 +26,7 @@ impl<T> Vbo<T> {
         unsafe { glBindBuffer(GL_ARRAY_BUFFER, self.0) };
     }
 
+    /// Load vertex data
     pub fn load_data(&self, data: &[T]) {
         self.enable();
 
@@ -84,6 +86,9 @@ pub fn new_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
     VertexPointers::<T>::new(vao)
 }
 
+/// Default vertex pointers for [`crate::VertexData`].
+/// To use different vertex data with a different layout create new `VertexPointers` with 
+/// a different layout.
 pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
     let vertex_pointers = new_vertex_pointers(context)
         .with_divisor(1)
@@ -97,11 +102,15 @@ pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
     vertex_pointers
 }
 
+/// OpenGL data type
 pub enum GlType {
+    /// GL_FLOAT
     Float,
+    /// GL_INT
     Int,
 }
 
+/// Vertex pointers.
 pub struct VertexPointers<T> {
     next_offset: u32,
     vao: Vao,
@@ -152,7 +161,7 @@ impl<T> VertexPointers<T> {
                 glVertexAttribIPointer(
                     position,
                     param_count,
-                    GL_FLOAT,
+                    GL_INT,
                     size_of::<T>() as i32,
                     self.next_offset as *const _,
                 );

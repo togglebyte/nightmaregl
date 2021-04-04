@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use num_traits::cast::NumCast;
 use gl33::global_loader::*;
 use gl33::*;
@@ -208,10 +209,12 @@ impl Context {
         }
     }
 
+    /// Swap the buffer on the current window, making all changes visible.
     pub fn swap_buffers(&self) {
         let _ = self.inner.swap_buffers().unwrap();
     }
 
+    /// Create a context builder. The title is the window title.
     pub fn builder(title: impl Into<String>) -> ContextBuilder {
         ContextBuilder::new(title.into())
     }

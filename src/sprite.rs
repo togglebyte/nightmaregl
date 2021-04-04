@@ -1,3 +1,4 @@
+#![deny(missing_docs)]
 use std::ops::MulAssign;
 
 use nalgebra::{Matrix4, Vector, Point3, Scalar};
@@ -6,6 +7,7 @@ use num_traits::Zero;
 
 use crate::{Position, Rotation, Size};
 
+/// Default vertex data
 pub type VertexData = (
     // Model
     Matrix4<f32>, 
@@ -18,15 +20,29 @@ pub type VertexData = (
 // -----------------------------------------------------------------------------
 //     - Sprite -
 // -----------------------------------------------------------------------------
-/// A sprite, positioned in world space.
+/// A sprite, positioned somehwere in world space. 
 #[derive(Debug, Copy, Clone)]
 pub struct Sprite<T> {
+    /// The size of the sprite
     pub size: Size<T>,
-    pub texture_size: Size<T>,
-    pub position: Position<T>,
-    pub rotation: Rotation<T>,
-    pub anchor: Position<T>,
+    /// Texture offset.
+    /// Used with the texture size to select a region on the
+    /// texture to render.
     pub texture_offset: Position<T>,
+    /// The texture size of the sprite
+    pub texture_size: Size<T>,
+    /// The sprites position in the world
+    pub position: Position<T>,
+    /// The sprites current rotation
+    pub rotation: Rotation<T>,
+    /// The anchor point of the sprite.
+    /// To rotate a sprite around its centre set the anchor 
+    /// to be half the size of the sprite.
+    pub anchor: Position<T>,
+    /// The order in which this sprite appears.
+    /// If a sprite has a lower `z_index` than another sprite it will
+    /// be drawn above it. Note however that for alpha values to work
+    /// the draw order is also important.
     pub z_index: T,
 }
 

@@ -12,7 +12,6 @@ uniform sampler2D tex;
 uniform float pixel_scale;
 
 out vec2 tex_coords;
-out float pixel_scale_f;
 
 void main() {
     mat4 scaling_matrix = mat4(1.0);
@@ -22,5 +21,4 @@ void main() {
     gl_Position = vp * scaling_matrix * transform * vec4(position, 1.0);
 
     tex_coords = tex_offset + uv_coords * tex_scale;
-    pixel_scale_f = pixel_scale;
 }
