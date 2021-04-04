@@ -7,15 +7,24 @@ use num_traits::Zero;
 
 use crate::{Position, Rotation, Size};
 
+// /// Default vertex data
+// pub type VertexData = (
+//     // Model
+//     Matrix4<f32>, 
+//     // Offset
+//     (f32, f32), 
+//     // Scale
+//     (f32, f32)
+// );
+
 /// Default vertex data
-pub type VertexData = (
-    // Model
-    Matrix4<f32>, 
-    // Offset
-    (f32, f32), 
-    // Scale
-    (f32, f32)
-);
+#[derive(Debug, Clone, Copy)]
+#[repr(C)]
+pub struct VertexData {
+    model: Matrix4<f32>, 
+    offset: (f32, f32), 
+    scale: (f32, f32)
+}
 
 // -----------------------------------------------------------------------------
 //     - Sprite -
@@ -100,10 +109,10 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     /// Convert the sprite to vertex data.
     /// Works with the default renderer.
     pub fn vertex_data(&self) -> VertexData {
-        (
-            self.model(),
-            self.get_texture_offset(),
-            self.get_texture_scale(),
-        )
+        VertexData {
+            model: self.model(),
+            offset: self.get_texture_offset(),
+            scale: self.get_texture_scale(),
+        }
     }
 }
