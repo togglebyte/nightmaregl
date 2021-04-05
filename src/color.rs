@@ -32,6 +32,11 @@ impl Color {
             a: 1.0,
         }
     }
+
+    /// All black
+    pub fn black() -> Self {
+        Self::default()
+    }
 }
 
 impl Default for Color  {

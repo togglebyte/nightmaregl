@@ -1,5 +1,7 @@
 #![deny(missing_docs)]
 //! # Event loop
+//! 
+//! See [eventloop::run](`crate::events::EventLoop::run`) for an example.
 use std::time::Instant;
 
 use glutin::event::Event as WinitEvent;
