@@ -82,8 +82,8 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
         let anchor = self.anchor.to_f32();
         let anchor = Point3::new(anchor.x, anchor.y, 0.0);
         Matrix4::new_translation(&Vector::from([
-            position.x,
-            position.y,
+            position.x + anchor.x,
+            position.y + anchor.y,
             self.z_index.to_f32().unwrap(),
         ])) 
             * Matrix4::new_rotation_wrt_point(rotation, anchor)
