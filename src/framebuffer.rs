@@ -9,9 +9,12 @@ use crate::Texture;
 ///
 /// ```
 /// use nightmaregl::Framebuffer;
-/// # fn run() {
+/// # use nightmaregl::Texture;
+/// # fn run(texture: Texture<f32>) {
 /// let fb = Framebuffer::new();
+/// fb.attach_texture(&texture);
 /// fb.bind();
+///
 /// // do some rendering to the frame buffer
 /// # }
 /// ```
@@ -57,6 +60,9 @@ impl Framebuffer {
 }
 
 impl Drop for Framebuffer {
+    // If the framebuffer is currently bound,
+    // framebuffer zero will be bound instead when
+    // this buffer is deleted.
     fn drop(&mut self) {
         unsafe { glDeleteFramebuffers(1, &mut self.id) }
     }

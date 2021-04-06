@@ -1,4 +1,6 @@
 #![deny(missing_docs)]
+use crate::pixel::Pixel;
+
 #[derive(Debug, Copy, Clone)]
 /// A colour with values ranging from 0.0 to 1.0
 pub struct Color {
@@ -46,6 +48,17 @@ impl Default for Color  {
             g: 0.0,
             b: 0.0,
             a: 1.0,
+        }
+    }
+}
+
+impl From<Pixel> for Color {
+    fn from(p: Pixel) -> Self {
+        Self {
+            r: (255.0 / p.r as f32),
+            g: (255.0 / p.g as f32),
+            b: (255.0 / p.b as f32),
+            a: (255.0 / p.a as f32),
         }
     }
 }

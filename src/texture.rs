@@ -192,6 +192,35 @@ impl TextureBuilder<Format> {
 
         texture
     }
+
+    /// This should probably only ever be used as a framebuffer texture.
+    /// Because this could contain rubbish data since it's not using initialized values.
+    pub fn with_no_data<T: Copy + NumCast>(self, size: impl Into<Size<T>>) -> Texture<T> {
+        let size = size.into().to_i32();
+
+        unsafe {
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0, // Level,
+                self.1.to_internal_format(),
+                size.width,
+                size.height,
+                0, // Border
+                self.1.to_format(),
+                GL_UNSIGNED_BYTE,
+                std::ptr::null(),
+            )
+        };
+
+        let texture = Texture { id: self.0, size: size.cast(), format: self.1 };
+
+        texture.min_filter(Filter::Nearest);
+        texture.mag_filter(Filter::Nearest);
+        texture.wrap_x(Wrap::NoWrap);
+        texture.wrap_y(Wrap::NoWrap);
+
+        texture
+    }
 }
 
 // -----------------------------------------------------------------------------

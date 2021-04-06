@@ -1,6 +1,6 @@
-use nightmaregl::events::{Event, Key, KeyState, LoopAction};
-use nightmaregl::{Color, Context, Position, Result, Size, Animation, Sprite, Renderer, Viewport, Rotation};
-use nightmaregl::texture::{Wrap, Texture};
+use nightmaregl::events::{Event, Key, LoopAction};
+use nightmaregl::{Color, Context, Position, Result, Sprite, Renderer, Viewport, Rotation};
+use nightmaregl::texture::Texture;
 
 fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     let now = std::time::Instant::now();
     eventloop.run(move |event| {
         match event {
-            Event::Draw(dt) => {
+            Event::Draw(_dt) => {
                 let t = now.elapsed().as_secs_f32();
 
                 // Clear the screen
@@ -49,12 +49,16 @@ fn main() -> Result<()> {
                 sprite.rotation = Rotation::radians(t / 1.0);
 
                 // Draw the sprite
-                renderer.render(
+                let res = renderer.render(
                 	&texture,
                 	&vec![sprite.vertex_data()],
                 	&viewport,
                 	&mut context
                 );
+
+                if let Err(e) = res {
+                    eprintln!("error rendering: {:?}", e);
+                }
 
                 context.swap_buffers();
             }
@@ -67,6 +71,4 @@ fn main() -> Result<()> {
 
         LoopAction::Continue
     });
-
-    Ok(())
 }
