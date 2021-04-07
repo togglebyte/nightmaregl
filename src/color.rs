@@ -41,7 +41,7 @@ impl Color {
     }
 }
 
-impl Default for Color  {
+impl Default for Color {
     fn default() -> Self {
         Self {
             r: 0.0,
@@ -55,10 +55,10 @@ impl Default for Color  {
 impl From<Pixel> for Color {
     fn from(p: Pixel) -> Self {
         Self {
-            r: (255.0 / p.r as f32),
-            g: (255.0 / p.g as f32),
-            b: (255.0 / p.b as f32),
-            a: (255.0 / p.a as f32),
+            r: (p.r as f32 / 255.0),
+            g: (p.g as f32 / 255.0),
+            b: (p.b as f32 / 255.0),
+            a: (p.a as f32 / 255.0),
         }
     }
 }

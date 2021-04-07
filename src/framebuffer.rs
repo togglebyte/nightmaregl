@@ -44,6 +44,7 @@ impl Framebuffer {
     /// Attach a texture to this frame buffer to render to.
     pub fn attach_texture<T: Copy + NumCast>(&self, texture: &Texture<T>) {
         self.bind();
+        texture.bind();
 
         unsafe {
             glFramebufferTexture2D(
