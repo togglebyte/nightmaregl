@@ -11,38 +11,41 @@ use crate::Texture;
 /// use nightmaregl::Framebuffer;
 /// # use nightmaregl::Texture;
 /// # fn run(texture: Texture<f32>) {
-/// let fb = Framebuffer::new();
-/// fb.attach_texture(&texture);
+/// let fb = Framebuffer::new(texture);
 /// fb.bind();
 ///
 /// // do some rendering to the frame buffer
 /// # }
 /// ```
-pub struct Framebuffer {
+pub struct Framebuffer<T: NumCast + Copy> {
     id: u32,
+    pub(crate) texture: Texture<T>
 }
 
-impl Framebuffer {
+impl<T: NumCast + Copy> Framebuffer<T> {
     /// Create a new framebuffer
-    pub fn new() -> Self {
+    pub fn new(texture: Texture<T>) -> Self {
         let mut id = 0;
         unsafe { glGenFramebuffers(1, &mut id) };
-        Self { id }
+        Self { 
+            id,
+            texture,
+        }
     }
 
     /// Bind this framebuffer, making all subsequent draw calls act
-    /// on this buffer.
+    /// on this buffer and it's texture.
     pub fn bind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, self.id) };
     }
 
-    /// Unbind this buffer.
+    /// Unbind this buffer and texture.
     pub fn unbind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, 0) };
     }
 
     /// Attach a texture to this frame buffer to render to.
-    pub fn attach_texture<T: Copy + NumCast>(&self, texture: &Texture<T>) {
+    pub fn attach_texture(&self, texture: &Texture<T>) {
         self.bind();
         texture.bind();
 
@@ -58,9 +61,15 @@ impl Framebuffer {
 
         self.unbind();
     }
+
+    /// Get a reference to the texture owned
+    /// by the framebuffer.
+    pub fn texture(&self) -> &Texture<T> {
+        &self.texture
+    }
 }
 
-impl Drop for Framebuffer {
+impl<T: NumCast + Copy> Drop for Framebuffer<T> {
     // If the framebuffer is currently bound,
     // framebuffer zero will be bound instead when
     // this buffer is deleted.
