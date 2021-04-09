@@ -11,41 +11,38 @@ use crate::Texture;
 /// use nightmaregl::Framebuffer;
 /// # use nightmaregl::Texture;
 /// # fn run(texture: Texture<f32>) {
-/// let fb = Framebuffer::new(texture);
+/// let fb = Framebuffer::new();
+/// fb.attach_texture(&texture);
 /// fb.bind();
 ///
 /// // do some rendering to the frame buffer
 /// # }
 /// ```
-pub struct Framebuffer<T: NumCast + Copy> {
+pub struct Framebuffer {
     id: u32,
-    pub(crate) texture: Texture<T>
 }
 
-impl<T: NumCast + Copy> Framebuffer<T> {
+impl Framebuffer {
     /// Create a new framebuffer
-    pub fn new(texture: Texture<T>) -> Self {
+    pub fn new() -> Self {
         let mut id = 0;
         unsafe { glGenFramebuffers(1, &mut id) };
-        Self { 
-            id,
-            texture,
-        }
+        Self { id }
     }
 
     /// Bind this framebuffer, making all subsequent draw calls act
-    /// on this buffer and it's texture.
+    /// on this buffer.
     pub fn bind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, self.id) };
     }
 
-    /// Unbind this buffer and texture.
+    /// Unbind this buffer.
     pub fn unbind(&self) {
         unsafe { glBindFramebuffer(GL_FRAMEBUFFER, 0) };
     }
 
     /// Attach a texture to this frame buffer to render to.
-    pub fn attach_texture(&self, texture: &Texture<T>) {
+    pub fn attach_texture<T: Copy + NumCast>(&self, texture: &Texture<T>) {
         self.bind();
         texture.bind();
 
@@ -61,24 +58,9 @@ impl<T: NumCast + Copy> Framebuffer<T> {
 
         self.unbind();
     }
-
-    /// Get a reference to the texture owned
-    /// by the framebuffer.
-    pub fn texture(&self) -> &Texture<T> {
-        &self.texture
-    }
-
-    /// Replace the existing texture.
-    /// This is useful since textures can't be resized, so 
-    /// if a new size is required the texture has to be replaced.
-    ///
-    /// The same is applicable for formats, filtering etc.
-    pub fn replace_texture(&mut self, texture: Texture<T>) {
-        self.texture = texture;
-    }
 }
 
-impl<T: NumCast + Copy> Drop for Framebuffer<T> {
+impl Drop for Framebuffer {
     // If the framebuffer is currently bound,
     // framebuffer zero will be bound instead when
     // this buffer is deleted.
