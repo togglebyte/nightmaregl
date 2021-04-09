@@ -67,6 +67,15 @@ impl<T: NumCast + Copy> Framebuffer<T> {
     pub fn texture(&self) -> &Texture<T> {
         &self.texture
     }
+
+    /// Replace the existing texture.
+    /// This is useful since textures can't be resized, so 
+    /// if a new size is required the texture has to be replaced.
+    ///
+    /// The same is applicable for formats, filtering etc.
+    pub fn replace_texture(&mut self, texture: Texture<T>) {
+        self.texture = texture;
+    }
 }
 
 impl<T: NumCast + Copy> Drop for Framebuffer<T> {
