@@ -7,23 +7,18 @@ use num_traits::Zero;
 
 use crate::{Position, Rotation, Size};
 
-// /// Default vertex data
-// pub type VertexData = (
-//     // Model
-//     Matrix4<f32>, 
-//     // Offset
-//     (f32, f32), 
-//     // Scale
-//     (f32, f32)
-// );
-
 /// Default vertex data
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct VertexData {
-    model: Matrix4<f32>, 
-    offset: (f32, f32), 
-    scale: (f32, f32)
+    /// The model matrix
+    pub model: Matrix4<f32>, 
+
+    /// Texture offset
+    pub offset: (f32, f32), 
+
+    /// Texture scale
+    pub scale: (f32, f32)
 }
 
 // -----------------------------------------------------------------------------
@@ -73,9 +68,15 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
         }
     }
 
-    /// Model matrix
+    /// Create a model matrix
     pub fn model(&self) -> Matrix4<f32> {
-        let position = self.position.to_f32();
+        self.scaled_model(1.0)
+    }
+
+    /// Crate a scaled model matrix
+    pub fn scaled_model(&self, scale: f32) -> Matrix4<f32> {
+        let scale = 1.0 / scale;
+        let position = self.position.to_f32() * scale;
         let size = self.size.to_f32();
         let rotation = self.rotation.to_f32();
         let rotation = Vector::from([0.0, 0.0, rotation.radians]);
@@ -115,4 +116,15 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             scale: self.get_texture_scale(),
         }
     }
+
+    /// Convert the sprite to vertex data.
+    /// Works with the default renderer.
+    pub fn scaled_vertex_data(&self, scale: f32) -> VertexData {
+        VertexData {
+            model: self.scaled_model(scale),
+            offset: self.get_texture_offset(),
+            scale: self.get_texture_scale(),
+        }
+    }
+
 }
