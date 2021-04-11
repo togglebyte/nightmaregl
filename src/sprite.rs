@@ -5,7 +5,7 @@ use nalgebra::{Matrix4, Vector, Point3, Scalar};
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
-use crate::{Position, Rotation, Size};
+use crate::{Position, Point, Rotation, Size, Rect};
 use crate::texture::Texture;
 
 /// Default vertex data
@@ -35,7 +35,8 @@ pub struct Sprite<T> {
     /// Texture offset.
     /// Used with the texture size to select a region on the
     /// texture to render.
-    pub texture_offset: Position<T>,
+    pub texture_rect: Rect<T>,
+    // pub texture_offset: Position<T>,
     /// The sprites position in the world
     pub position: Position<T>,
     /// The sprites current rotation
@@ -63,7 +64,8 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             texture_size: texture_size,
             position: Position::zero(),
             rotation: Rotation::zero(),
-            texture_offset: Position::zero(),
+            texture_rect: Rect::new(Point::zero(), texture_size.to_vector().to_point()),
+            // texture_offset: Position::zero(),
             anchor: Position::zero(),
             z_index: T::zero(),
         }
@@ -93,18 +95,19 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     }
 
     fn get_texture_offset(&self) -> (f32, f32) {
-        let offset = self.texture_offset.to_f32();
+        let rect = self.texture_rect.to_f32();
         let size = self.texture_size.to_f32();
-        let x = offset.x / size.width;
-        let y = offset.y / size.height;
+        let x = rect.min.x / size.width;
+        let y = rect.min.y / size.height;
         (x, y)
     }
 
     fn get_texture_scale(&self) -> (f32, f32) {
-        let size = self.size.to_f32();
+        // let size = self.size.to_f32();
+        let rect = self.texture_rect.to_f32();
         let texture_size = self.texture_size.to_f32();
-        let x = size.width / texture_size.width;
-        let y = size.height / texture_size.height;
+        let x = rect.max.x / texture_size.width;
+        let y = rect.max.y / texture_size.height;
         (x, y)
     }
 

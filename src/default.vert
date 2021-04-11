@@ -20,5 +20,7 @@ void main() {
 
     gl_Position = vp * scaling_matrix * transform * vec4(position, 1.0);
 
+    vec2 tily = vec2(2.0, 1.0);
+
     tex_coords = tex_offset + uv_coords * tex_scale;
 }

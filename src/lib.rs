@@ -38,4 +38,6 @@ pub struct Vertex {
 // -----------------------------------------------------------------------------
 pub type Size<T> = euclid::default::Size2D<T>;
 pub type Position<T> = euclid::default::Vector2D<T>;
+pub type Point<T> = euclid::default::Point2D<T>;
+pub type Rect<T> = euclid::default::Box2D<T>;
 pub type Rotation<T> = euclid::Angle<T>;

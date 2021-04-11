@@ -157,11 +157,11 @@ impl Text {
             .map(|(uv, vert)| {
                 let mut sprite = Sprite::new(&self.cache.texture);
                 let scale = self.cache.size.width;
-                let tex_offset = Position::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
+                let tex_offset = crate::Point::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
                 let size = Size::new(uv.width(), uv.height());
                 let pos = Position::new(vert.min.x, -vert.max.y) + self.position.cast();
 
-                sprite.texture_offset = tex_offset;
+                sprite.texture_rect.min = tex_offset;
                 sprite.size = size.cast();
                 sprite.position = pos.cast();
                 sprite.size *= scale;
