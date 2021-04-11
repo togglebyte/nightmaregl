@@ -111,8 +111,7 @@ impl<T: std::fmt::Debug> Renderer<T> {
             .set_uniform_matrix(clip, clip_uniform_name)?;
 
         let pixel_scale_uniform_name = CStr::from_bytes_with_nul(b"pixel_scale\0").expect("invalid c string");
-        self.shader_program
-            .set_uniform_float(self.pixel_size as f32, pixel_scale_uniform_name)?;
+        self.shader_program.set_uniform_float(self.pixel_size as f32, pixel_scale_uniform_name)?;
 
         unsafe {
             glDrawArraysInstanced(

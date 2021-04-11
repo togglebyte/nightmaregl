@@ -155,7 +155,7 @@ impl Text {
             .filter_map(|c| self.cache.inner.rect_for(0, c).ok())
             .flatten()
             .map(|(uv, vert)| {
-                let mut sprite = Sprite::new(self.cache.size);
+                let mut sprite = Sprite::new(&self.cache.texture);
                 let scale = self.cache.size.width;
                 let tex_offset = Position::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
                 let size = Size::new(uv.width(), uv.height());

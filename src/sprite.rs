@@ -6,6 +6,7 @@ use num_traits::cast::NumCast;
 use num_traits::Zero;
 
 use crate::{Position, Rotation, Size};
+use crate::texture::Texture;
 
 /// Default vertex data
 #[derive(Debug, Clone, Copy)]
@@ -54,8 +55,8 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     /// Create a new sprite that has the size of the texture by default.
     /// To set the sprite to only show a portion of a texture set the 
     /// `texture_offset` value.
-    pub fn new(texture_size: impl Into<Size<T>>) -> Self {
-        let texture_size = texture_size.into();
+    pub fn new(texture: &Texture<T>) -> Self {
+        let texture_size = texture.size;
 
         Self {
             size: texture_size,
