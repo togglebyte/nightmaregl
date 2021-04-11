@@ -28,14 +28,14 @@ pub struct VertexData {
 /// A sprite, positioned somehwere in world space. 
 #[derive(Debug, Copy, Clone)]
 pub struct Sprite<T> {
+    // The texture size of the sprite
+    texture_size: Size<T>,
     /// The size of the sprite
     pub size: Size<T>,
     /// Texture offset.
     /// Used with the texture size to select a region on the
     /// texture to render.
     pub texture_offset: Position<T>,
-    /// The texture size of the sprite
-    pub texture_size: Size<T>,
     /// The sprites position in the world
     pub position: Position<T>,
     /// The sprites current rotation
@@ -71,11 +71,11 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
 
     /// Create a model matrix
     pub fn model(&self) -> Matrix4<f32> {
-        self.scaled_model(1.0)
+        self.model_scaled(1.0)
     }
 
     /// Crate a scaled model matrix
-    pub fn scaled_model(&self, scale: f32) -> Matrix4<f32> {
+    pub fn model_scaled(&self, scale: f32) -> Matrix4<f32> {
         let scale = 1.0 / scale;
         let position = self.position.to_f32() * scale;
         let size = self.size.to_f32();
@@ -120,9 +120,9 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
 
     /// Convert the sprite to vertex data.
     /// Works with the default renderer.
-    pub fn scaled_vertex_data(&self, scale: f32) -> VertexData {
+    pub fn vertex_data_scaled(&self, scale: f32) -> VertexData {
         VertexData {
-            model: self.scaled_model(scale),
+            model: self.model_scaled(scale),
             offset: self.get_texture_offset(),
             scale: self.get_texture_scale(),
         }
