@@ -141,11 +141,9 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
             FillMode::Repeat => {
                 let size = self.size.to_f32();
                 let total_texture_size = self.texture_size.to_f32();
-                let (w, h) = self.get_texture_size();
-                let x = size.width / w / total_texture_size.width;
-                let y = size.height / h / total_texture_size.height;
-                // let x = size.width / texture_size.width;
-                // let y = size.height / texture_size.height;
+                let (texture_width, texture_height) = self.get_texture_size();
+                let x = size.width / texture_width / total_texture_size.width;
+                let y = size.height / texture_height / total_texture_size.height;
                 (x, y)
             }
             FillMode::Stretch => (1.0, 1.0),
