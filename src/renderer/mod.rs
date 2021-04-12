@@ -97,7 +97,8 @@ pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
         .add(5, 4, GlType::Float, false)
         .add(6, 4, GlType::Float, false)
         .add(10, 2, GlType::Float, false)
-        .add(11, 2, GlType::Float, false);
+        .add(11, 2, GlType::Float, false)
+        .add(12, 2, GlType::Float, false);
 
     vertex_pointers
 }

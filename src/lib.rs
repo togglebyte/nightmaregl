@@ -4,7 +4,7 @@ mod framebuffer;
 mod pixel;
 mod sprite;
 mod viewport;
-mod animation;
+// mod animation;
 pub mod errors;
 pub mod events;
 pub mod renderer;
@@ -15,13 +15,13 @@ pub use errors::Result;
 
 pub use context::Context;
 pub use framebuffer::Framebuffer;
-pub use sprite::{VertexData, Sprite};
+pub use sprite::{VertexData, Sprite, FillMode};
 pub use texture::Texture;
 pub use viewport::Viewport;
 pub use color::Color;
 pub use renderer::Renderer;
 pub use pixel::{Pixel, Pixels};
-pub use animation::Animation;
+// pub use animation::Animation;
 
 // -----------------------------------------------------------------------------
 //     - Vertex -
@@ -39,5 +39,5 @@ pub struct Vertex {
 pub type Size<T> = euclid::default::Size2D<T>;
 pub type Position<T> = euclid::default::Vector2D<T>;
 pub type Point<T> = euclid::default::Point2D<T>;
-pub type Rect<T> = euclid::default::Box2D<T>;
+pub type Rect<T> = euclid::default::Rect<T>;
 pub type Rotation<T> = euclid::Angle<T>;

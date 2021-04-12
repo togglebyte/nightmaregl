@@ -161,7 +161,7 @@ impl Text {
                 let size = Size::new(uv.width(), uv.height());
                 let pos = Position::new(vert.min.x, -vert.max.y) + self.position.cast();
 
-                sprite.texture_rect.min = tex_offset;
+                sprite.texture_rect.origin = tex_offset;
                 sprite.size = size.cast();
                 sprite.position = pos.cast();
                 sprite.size *= scale;

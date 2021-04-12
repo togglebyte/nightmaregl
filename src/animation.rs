@@ -95,9 +95,8 @@ impl<T: Copy + NumCast> Animation<T> {
         let x = self.current_frame % self.cols;
         let y = self.current_frame / self.cols;
 
-        todo!("change offset this to use a rect instead");
-        // let offset = Position::new(x * self.stride, y * self.stride).cast();
-        // self.sprite.texture_offset = offset;
+        let offset = Position::new(x * self.stride, y * self.stride).cast();
+        self.sprite.texture_offset = offset;
     }
 }
 

@@ -1,31 +1,46 @@
 #![deny(missing_docs)]
-use std::ops::MulAssign;
+use std::ops::{Div, MulAssign};
 
-use nalgebra::{Matrix4, Vector, Point3, Scalar};
+use nalgebra::{Matrix4, Point3, Scalar, Vector};
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
-use crate::{Position, Point, Rotation, Size, Rect};
 use crate::texture::Texture;
+use crate::{Point, Position, Rect, Rotation, Size};
 
 /// Default vertex data
 #[derive(Debug, Clone, Copy)]
 #[repr(C)]
 pub struct VertexData {
     /// The model matrix
-    pub model: Matrix4<f32>, 
+    pub model: Matrix4<f32>,
 
     /// Texture position
-    pub texture_position: (f32, f32), 
+    pub texture_position: (f32, f32),
 
     /// Texture size
-    pub texture_size: (f32, f32)
+    pub texture_size: (f32, f32),
+
+    /// Tile count
+    pub tile_count: (f32, f32),
+}
+
+/// Tiling mode. Either stretch or tiling
+#[derive(Debug, Copy, Clone)]
+pub enum FillMode {
+    /// Stretch the texture to cover the entire
+    /// sprite size.
+    Stretch,
+
+    /// Repeat a portion of the texture over
+    /// the entire sprite.
+    Repeat,
 }
 
 // -----------------------------------------------------------------------------
 //     - Sprite -
 // -----------------------------------------------------------------------------
-/// A sprite, positioned somehwere in world space. 
+/// A sprite, positioned somehwere in world space.
 #[derive(Debug, Copy, Clone)]
 pub struct Sprite<T> {
     // The texture size of the sprite
@@ -34,13 +49,13 @@ pub struct Sprite<T> {
     pub size: Size<T>,
     /// A rectangle representing the area
     /// of a texture to render.
-    pub texture_rect: Rect<f32>,
+    pub texture_rect: Rect<T>,
     /// The sprites position in the world
     pub position: Position<T>,
     /// The sprites current rotation
     pub rotation: Rotation<T>,
     /// The anchor point of the sprite.
-    /// To rotate a sprite around its centre set the anchor 
+    /// To rotate a sprite around its centre set the anchor
     /// to be half the size of the sprite.
     pub anchor: Position<T>,
     /// The order in which this sprite appears.
@@ -48,11 +63,13 @@ pub struct Sprite<T> {
     /// be drawn above it. Note however that for alpha values to work
     /// the draw order is also important.
     pub z_index: T,
+    /// Decide whether to tile or stretch.
+    pub fill: FillMode,
 }
 
-impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
+impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> Sprite<T> {
     /// Create a new sprite that has the size of the texture by default.
-    /// To set the sprite to only show a portion of a texture set the 
+    /// To set the sprite to only show a portion of a texture set the
     /// `texture_rect` value.
     pub fn new(texture: &Texture<T>) -> Self {
         let texture_size = texture.size;
@@ -62,9 +79,10 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             texture_size: texture_size,
             position: Position::zero(),
             rotation: Rotation::zero(),
-            texture_rect: Rect::new(Point::zero(), texture_size.cast().to_vector().to_point()),
+            texture_rect: Rect::new(Point::zero(), texture_size.cast()),
             anchor: Position::zero(),
             z_index: T::zero(),
+            fill: FillMode::Stretch,
         }
     }
 
@@ -86,27 +104,28 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             position.x + anchor.x,
             position.y + anchor.y,
             self.z_index.to_f32().unwrap(),
-        ])) 
-            * Matrix4::new_rotation_wrt_point(rotation, anchor)
+        ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
     }
 
     fn get_texture_position(&self) -> (f32, f32) {
-        // let rect = self.texture_rect.to_f32();
-        // let size = self.texture_size.to_f32();
-        // let x = rect.min.x / size.width;
-        // let y = rect.min.y / size.height;
-        // (x, y)
-        self.texture_rect.cast().min.to_tuple()
+        let total_tex_size = self.texture_size.to_f32();
+        let origin = self.texture_rect.origin.to_f32();
+
+        (
+            origin.x / total_tex_size.width,
+            origin.y / total_tex_size.height,
+        )
     }
 
     fn get_texture_size(&self) -> (f32, f32) {
-        self.texture_rect.cast().max.to_tuple()
-        // let rect = self.texture_rect.to_f32();
-        // let texture_size = self.texture_size.to_f32();
-        // let x = rect.max.x / texture_size.width;
-        // let y = rect.max.y / texture_size.height;
-        // (x, y)
+        let tex_rect_size = self.texture_rect.size.to_f32();
+        let total_tex_size = self.texture_size.to_f32();
+
+        (
+            tex_rect_size.width / total_tex_size.width,
+            tex_rect_size.height / total_tex_size.height,
+        )
     }
 
     /// Convert the sprite to vertex data.
@@ -118,11 +137,25 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     /// Convert the sprite to vertex data.
     /// Works with the default renderer.
     pub fn vertex_data_scaled(&self, scale: f32) -> VertexData {
+        let tile_count: (f32, f32) = match self.fill {
+            FillMode::Repeat => {
+                let size = self.size.to_f32();
+                let total_texture_size = self.texture_size.to_f32();
+                let (w, h) = self.get_texture_size();
+                let x = size.width / w / total_texture_size.width;
+                let y = size.height / h / total_texture_size.height;
+                // let x = size.width / texture_size.width;
+                // let y = size.height / texture_size.height;
+                (x, y)
+            }
+            FillMode::Stretch => (1.0, 1.0),
+        };
+
         VertexData {
             model: self.model_scaled(scale),
             texture_position: self.get_texture_position(),
             texture_size: self.get_texture_size(),
+            tile_count,
         }
     }
-
 }
