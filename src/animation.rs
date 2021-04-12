@@ -2,36 +2,34 @@
 use num_traits::cast::NumCast;
 
 use crate::sprite::Sprite;
-use crate::Position;
+use crate::Point;
 
 /// Represent a sprite as an animation.
 ///
 /// To make the animation loop set the `should_loop` variable;
 ///
-/// ```
+/// ```ignore
 /// use nightmaregl::{Sprite, Animation};
-/// # use nightmaregl::{Size, Texture, Position};
-/// # fn run(texture: Texture<f32>) {
-/// let sprite = Sprite::new(texture.size());
-/// # let sprite = Sprite::new(Size::new(32, 32 * 3));
+/// use nightmaregl::texture::test_texture;
+/// # use nightmaregl::{Size, Texture, Point};
+/// let sprite = Sprite::new(&texture);
 /// let mut animation = Animation::new(sprite, 1, 3, 32);
 /// animation.should_loop = false;
 /// animation.fps = 1.0;
 ///
 /// // first frame is at 0, 0
-/// assert_eq!(animation.sprite.texture_offset, Position::zero());
+/// assert_eq!(animation.sprite.texture_rect.origin, Point::zero());
 /// assert_eq!(animation.current_frame(), 0);
 ///
 /// // Second frame is at 32, 0
 /// animation.update(1.0);
-/// assert_eq!(animation.sprite.texture_offset, Position::new(32, 0));
+/// assert_eq!(animation.sprite.texture_rect.origin, Point::new(32, 0));
 /// assert_eq!(animation.current_frame(), 1);
 /// 
 /// // Third frame at 64, 0
 /// animation.update(1.0);
-/// assert_eq!(animation.sprite.texture_offset, Position::new(64, 0));
+/// assert_eq!(animation.sprite.texture_rect.origin, Point::new(64, 0));
 /// assert_eq!(animation.current_frame(), 2);
-/// # }
 /// ```
 pub struct Animation<T> {
     cols: u16,
@@ -95,8 +93,8 @@ impl<T: Copy + NumCast> Animation<T> {
         let x = self.current_frame % self.cols;
         let y = self.current_frame / self.cols;
 
-        let offset = Position::new(x * self.stride, y * self.stride).cast();
-        self.sprite.texture_offset = offset;
+        let offset = Point::new(x * self.stride, y * self.stride).cast();
+        self.sprite.texture_rect.origin = offset;
     }
 }
 
@@ -104,9 +102,11 @@ impl<T: Copy + NumCast> Animation<T> {
 mod test {
     use super::*;
     use crate::{Size, Sprite};
+    use crate::texture::test_texture;
 
     fn make_sprite() -> Sprite<u16> {
-        let mut sprite = Sprite::new(Size::new(32 * 2, 32 * 2));
+        let texture = test_texture(Size::new(32 * 2, 32 * 2));
+        let mut sprite = Sprite::new(&texture);
         sprite.size = Size::new(32, 32);
         sprite
     }
@@ -120,26 +120,26 @@ mod test {
 
         // Second frame
         animation.next();
-        let actual = animation.sprite.texture_offset;
-        let expected = Position::new(stride, 0);
+        let actual = animation.sprite.texture_rect.origin;
+        let expected = Point::new(stride, 0);
         assert_eq!(expected, actual);
 
         // Third frame
         animation.next();
-        let actual = animation.sprite.texture_offset;
-        let expected = Position::new(0, stride);
+        let actual = animation.sprite.texture_rect.origin;
+        let expected = Point::new(0, stride);
         assert_eq!(expected, actual);
 
         // Fourth frame
         animation.next();
-        let actual = animation.sprite.texture_offset;
-        let expected = Position::new(stride, stride);
+        let actual = animation.sprite.texture_rect.origin;
+        let expected = Point::new(stride, stride);
         assert_eq!(expected, actual);
 
         // First frame: the offset stays the same
         animation.next();
-        let actual = animation.sprite.texture_offset;
-        let expected = Position::zero();
+        let actual = animation.sprite.texture_rect.origin;
+        let expected = Point::zero();
         assert_eq!(expected, actual);
     }
 

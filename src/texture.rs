@@ -472,6 +472,20 @@ impl<T: Copy + NumCast> Texture<T> {
 // -----------------------------------------------------------------------------
 impl<T: Copy + NumCast> Drop for Texture<T> {
     fn drop(&mut self) {
+        #[cfg(not(test))]
         unsafe { glDeleteTextures(1, &self.id) };
+    }
+}
+
+// -----------------------------------------------------------------------------
+//     - Test helpers -
+// -----------------------------------------------------------------------------
+#[cfg(test)]
+/// Don't use this
+pub fn test_texture<T: NumCast + Copy>(size: Size<T>) -> Texture<T> {
+    Texture {
+        id: 0,
+        size,
+        format: Format::Rgba,
     }
 }

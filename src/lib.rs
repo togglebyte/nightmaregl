@@ -4,7 +4,7 @@ mod framebuffer;
 mod pixel;
 mod sprite;
 mod viewport;
-// mod animation;
+mod animation;
 pub mod errors;
 pub mod events;
 pub mod renderer;
@@ -21,7 +21,7 @@ pub use viewport::Viewport;
 pub use color::Color;
 pub use renderer::Renderer;
 pub use pixel::{Pixel, Pixels};
-// pub use animation::Animation;
+pub use animation::Animation;
 
 // -----------------------------------------------------------------------------
 //     - Vertex -
