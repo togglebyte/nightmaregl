@@ -15,11 +15,11 @@ pub struct VertexData {
     /// The model matrix
     pub model: Matrix4<f32>, 
 
-    /// Texture offset
-    pub offset: (f32, f32), 
+    /// Texture position
+    pub texture_position: (f32, f32), 
 
-    /// Texture scale
-    pub scale: (f32, f32)
+    /// Texture size
+    pub texture_size: (f32, f32)
 }
 
 // -----------------------------------------------------------------------------
@@ -32,11 +32,9 @@ pub struct Sprite<T> {
     texture_size: Size<T>,
     /// The size of the sprite
     pub size: Size<T>,
-    /// Texture offset.
-    /// Used with the texture size to select a region on the
-    /// texture to render.
-    pub texture_rect: Rect<T>,
-    // pub texture_offset: Position<T>,
+    /// A rectangle representing the area
+    /// of a texture to render.
+    pub texture_rect: Rect<f32>,
     /// The sprites position in the world
     pub position: Position<T>,
     /// The sprites current rotation
@@ -55,7 +53,7 @@ pub struct Sprite<T> {
 impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     /// Create a new sprite that has the size of the texture by default.
     /// To set the sprite to only show a portion of a texture set the 
-    /// `texture_offset` value.
+    /// `texture_rect` value.
     pub fn new(texture: &Texture<T>) -> Self {
         let texture_size = texture.size;
 
@@ -64,8 +62,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             texture_size: texture_size,
             position: Position::zero(),
             rotation: Rotation::zero(),
-            texture_rect: Rect::new(Point::zero(), texture_size.to_vector().to_point()),
-            // texture_offset: Position::zero(),
+            texture_rect: Rect::new(Point::zero(), texture_size.cast().to_vector().to_point()),
             anchor: Position::zero(),
             z_index: T::zero(),
         }
@@ -94,31 +91,28 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
             * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
     }
 
-    fn get_texture_offset(&self) -> (f32, f32) {
-        let rect = self.texture_rect.to_f32();
-        let size = self.texture_size.to_f32();
-        let x = rect.min.x / size.width;
-        let y = rect.min.y / size.height;
-        (x, y)
+    fn get_texture_position(&self) -> (f32, f32) {
+        // let rect = self.texture_rect.to_f32();
+        // let size = self.texture_size.to_f32();
+        // let x = rect.min.x / size.width;
+        // let y = rect.min.y / size.height;
+        // (x, y)
+        self.texture_rect.cast().min.to_tuple()
     }
 
-    fn get_texture_scale(&self) -> (f32, f32) {
-        // let size = self.size.to_f32();
-        let rect = self.texture_rect.to_f32();
-        let texture_size = self.texture_size.to_f32();
-        let x = rect.max.x / texture_size.width;
-        let y = rect.max.y / texture_size.height;
-        (x, y)
+    fn get_texture_size(&self) -> (f32, f32) {
+        self.texture_rect.cast().max.to_tuple()
+        // let rect = self.texture_rect.to_f32();
+        // let texture_size = self.texture_size.to_f32();
+        // let x = rect.max.x / texture_size.width;
+        // let y = rect.max.y / texture_size.height;
+        // (x, y)
     }
 
     /// Convert the sprite to vertex data.
     /// Works with the default renderer.
     pub fn vertex_data(&self) -> VertexData {
-        VertexData {
-            model: self.model(),
-            offset: self.get_texture_offset(),
-            scale: self.get_texture_scale(),
-        }
+        self.vertex_data_scaled(1.0)
     }
 
     /// Convert the sprite to vertex data.
@@ -126,8 +120,8 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar> Sprite<T> {
     pub fn vertex_data_scaled(&self, scale: f32) -> VertexData {
         VertexData {
             model: self.model_scaled(scale),
-            offset: self.get_texture_offset(),
-            scale: self.get_texture_scale(),
+            texture_position: self.get_texture_position(),
+            texture_size: self.get_texture_size(),
         }
     }
 
