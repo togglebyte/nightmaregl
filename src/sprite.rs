@@ -41,6 +41,19 @@ pub enum FillMode {
 //     - Sprite -
 // -----------------------------------------------------------------------------
 /// A sprite, positioned somehwere in world space.
+///
+/// ```
+/// # use nightmaregl::Texture;
+/// use nightmaregl::{Rect, Sprite, Point, Size};
+///
+/// # fn run(texture: Texture<i32>) {
+/// let mut sprite = Sprite::new(&texture);
+/// // Sprite is "looking" at 32x32 pixels with an offset of zero
+/// sprite.texture_rect = Rect::new(Point::zero(), Size::new(32, 32));
+/// sprite.position.x = 10;
+/// let vertex_data = sprite.vertex_data();
+/// # }
+/// ```
 #[derive(Debug, Copy, Clone)]
 pub struct Sprite<T> {
     // The texture size of the sprite
