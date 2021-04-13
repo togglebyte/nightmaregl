@@ -75,7 +75,7 @@ pub struct Sprite<T> {
     /// If a sprite has a lower `z_index` than another sprite it will
     /// be drawn above it. Note however that for alpha values to work
     /// the draw order is also important.
-    pub z_index: T,
+    pub z_index: i32,
     /// Decide whether to tile or stretch.
     pub fill: FillMode,
 }
@@ -94,7 +94,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
             rotation: Rotation::zero(),
             texture_rect: Rect::new(Point::zero(), texture_size.cast()),
             anchor: Position::zero(),
-            z_index: T::zero(),
+            z_index: 50,
             fill: FillMode::Stretch,
         }
     }
@@ -116,7 +116,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         Matrix4::new_translation(&Vector::from([
             position.x + anchor.x,
             position.y + anchor.y,
-            self.z_index.to_f32().unwrap(),
+            self.z_index as f32,
         ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
     }

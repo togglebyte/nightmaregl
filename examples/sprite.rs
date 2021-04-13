@@ -28,8 +28,6 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let texture = Texture::from_disk("examples/buny.png")?;
     let mut sprite = Sprite::new(&texture);
-    // sprite.size = Size::new(32.0, 32.0);
-    eprintln!("{:?}", sprite.vertex_data());
     sprite.position = viewport.centre().to_f32() / renderer.pixel_size as f32;
     sprite.anchor = Position::new(sprite.size.width / 2.0, sprite.size.height / 2.0);
 
