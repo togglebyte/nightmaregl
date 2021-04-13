@@ -136,13 +136,6 @@ impl ShaderProgram {
         Ok(())
     }
 
-    // pub(crate) fn set_uniform_vec2(&self, vec: Vector2<f32>, name: &CStr) -> Result<()> {
-    //     let uniform_loc = self.get_uniform_location(name)?;
-    //     unsafe { glUniform2fv(uniform_loc, 1, vec.as_ptr()) };
-
-    //     Ok(())
-    // }
-
     pub(crate) fn set_uniform_float(&self, f: f32, name: &CStr) -> Result<()> {
         let uniform_loc = self.get_uniform_location(name)?;
         unsafe { glUniform1f(uniform_loc, f) };

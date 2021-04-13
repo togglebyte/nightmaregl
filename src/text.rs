@@ -48,7 +48,7 @@ pub enum WordWrap {
 /// ).unwrap();
 ///
 /// let texture = text.texture();
-/// let sprites = text.vertex_data();
+/// let vertex_data = text.vertex_data();
 ///
 /// # }
 /// ```
