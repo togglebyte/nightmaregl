@@ -18,7 +18,6 @@ out vec2 tex_size;
 out vec2 tile_count;
 
 void main() {
-
     mat4 scaling_matrix = mat4(1.0);
     scaling_matrix[0][0] = pixel_scale;
     scaling_matrix[1][1] = pixel_scale;
@@ -28,7 +27,6 @@ void main() {
     // Off to the fragment shader you go
     tex_pos = _tex_pos;
     tex_size = _tex_size;
-    /* tile_count = vec2(3.0, 1.0); */
     tile_count = _tile_count;
     tex_coords = uv_coords * tile_count;
 }

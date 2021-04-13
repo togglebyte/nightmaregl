@@ -162,7 +162,8 @@ impl Text {
                 let pos = Position::new(vert.min.x, -vert.max.y) + self.position.cast();
 
                 sprite.texture_rect.origin = tex_offset;
-                sprite.size = size.cast();
+                sprite.texture_rect.size = size.cast() * scale;
+                sprite.size = size;
                 sprite.position = pos.cast();
                 sprite.size *= scale;
                 sprite
