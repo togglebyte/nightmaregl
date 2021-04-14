@@ -8,6 +8,7 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let (eventloop, mut context) = Context::builder("Best game ever!")
         .resizable(false)
+        .vsync(false)
         .with_size(Size::new(800, 600))
         .build()?;
 

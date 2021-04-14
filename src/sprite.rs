@@ -86,7 +86,15 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
     /// `texture_rect` value.
     pub fn new(texture: &Texture<T>) -> Self {
         let texture_size = texture.size;
+        Self::from_size(texture_size)
+    }
 
+    /// Create a new sprite using a given texture size.
+    /// Avoid using this directly as using [`new`] will be less
+    /// prone to human errors.
+    ///
+    /// However this is very useful for testing purposes.
+    pub fn from_size(texture_size: Size<T>) -> Sprite<T> {
         Self {
             size: texture_size,
             texture_size: texture_size,

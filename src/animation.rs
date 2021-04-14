@@ -8,11 +8,9 @@ use crate::Point;
 ///
 /// To make the animation loop set the `should_loop` variable;
 ///
-/// ```ignore
-/// use nightmaregl::{Sprite, Animation};
-/// use nightmaregl::texture::test_texture;
-/// # use nightmaregl::{Size, Texture, Point};
-/// let sprite = Sprite::new(&texture);
+/// ```
+/// use nightmaregl::{Sprite, Animation, Point, Size};
+/// let sprite = Sprite::from_size(Size::new(32, 64));
 /// let mut animation = Animation::new(sprite, 1, 3, 32);
 /// animation.should_loop = false;
 /// animation.fps = 1.0;

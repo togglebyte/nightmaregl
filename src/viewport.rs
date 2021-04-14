@@ -29,7 +29,7 @@ fn projection(size: Size<f32>) -> Matrix4<f32> {
         0.0,
         size.height,
         0.0,
-        -100.0,
+        -10000.0,
     )
 }
 
