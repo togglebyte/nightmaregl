@@ -46,6 +46,23 @@ impl Viewport {
         }
     }
 
+    /// Swap the Y axis on the projection matrix.
+    /// This is useful if rendering to a framebuffer
+    /// as the y axis will be flipped by default.
+    pub fn swap_y(&mut self) {
+        let size = self.size.cast();
+        let matrix = Matrix4::new_orthographic(
+            0.0,
+            size.width,
+            size.height,
+            0.0,
+            0.0,
+            -10000.0,
+        );
+
+        self.projection = matrix;
+    }
+
     /// Reszie the viewport.
     /// This will also update the projection.
     pub fn resize<T: NumCast + Copy>(&mut self, new_size: Size<T>) {
