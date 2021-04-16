@@ -7,6 +7,9 @@ use crate::Texture;
 
 /// Frame buffer
 ///
+/// When rendering to a framebuffer the Y axis will be inverted.
+/// To fix this it is possible to call `viewport.flip_y` before rendering.
+///
 /// ```
 /// use nightmaregl::Framebuffer;
 /// # use nightmaregl::Texture;
