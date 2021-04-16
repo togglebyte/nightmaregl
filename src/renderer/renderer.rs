@@ -30,7 +30,7 @@ pub struct Renderer<T> {
     vbo: Vbo<T>,
     _quad_vbo: Vbo<Vertex>,
     shader_program: ShaderProgram,
-    pub pixel_size: u16,
+    pub pixel_size: i32,
 }
 
 impl<T: std::fmt::Debug> Renderer<T> {
