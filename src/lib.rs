@@ -1,6 +1,5 @@
 mod color;
 mod context;
-mod framebuffer;
 mod pixel;
 mod sprite;
 mod viewport;
@@ -10,11 +9,11 @@ pub mod events;
 pub mod renderer;
 pub mod text;
 pub mod texture;
+pub mod framebuffer;
 
 pub use errors::Result;
 
 pub use context::Context;
-pub use framebuffer::{Framebuffer, FramebufferTarget};
 pub use sprite::{VertexData, Sprite, FillMode};
 pub use texture::Texture;
 pub use viewport::Viewport;

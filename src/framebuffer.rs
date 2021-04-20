@@ -1,4 +1,16 @@
 #![deny(missing_docs)]
+//! OpenGL framebuffer.
+//!
+//! For more information:
+//!
+//! [https://www.khronos.org/opengl/wiki/Framebuffer_Object](https://www.khronos.org/opengl/wiki/Framebuffer_Object)
+//!
+//! ```
+//! use nightmaregl::framebuffer::{Framebuffer, FramebufferTarget};
+//!
+//! // Create a framebuffer that can be both read from, and written to.
+//! let fb = Framebuffer::new(FramebufferTarget::Both);
+//! ```
 use gl33::global_loader::*;
 use gl33::*;
 use num_traits::cast::NumCast;
@@ -15,7 +27,7 @@ pub enum FramebufferTarget {
     Read,
 
     /// GL_WRITE_FRAMEBUFFER
-    Write,
+    Draw,
 
     /// GL_FRAMEBUFFER
     Both,
@@ -25,7 +37,7 @@ impl FramebufferTarget {
     fn to_gl(self) -> GLenum {
         match self {
             FramebufferTarget::Read => GL_READ_FRAMEBUFFER,
-            FramebufferTarget::Write => GL_DRAW_FRAMEBUFFER,
+            FramebufferTarget::Draw => GL_DRAW_FRAMEBUFFER,
             FramebufferTarget::Both => GL_FRAMEBUFFER,
         }
     }
