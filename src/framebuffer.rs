@@ -8,8 +8,10 @@
 //! ```
 //! use nightmaregl::framebuffer::{Framebuffer, FramebufferTarget};
 //!
+//! # fn run() {
 //! // Create a framebuffer that can be both read from, and written to.
 //! let fb = Framebuffer::new(FramebufferTarget::Both);
+//! # }
 //! ```
 use gl33::global_loader::*;
 use gl33::*;
@@ -55,10 +57,10 @@ impl Default for FramebufferTarget {
 /// To fix this it is possible to call `viewport.flip_y` before rendering.
 ///
 /// ```
-/// use nightmaregl::Framebuffer;
+/// use nightmaregl::framebuffer::{Framebuffer, FramebufferTarget};
 /// # use nightmaregl::Texture;
 /// # fn run(texture: Texture<f32>) {
-/// let fb = Framebuffer::new();
+/// let mut fb = Framebuffer::new(FramebufferTarget::Both);
 /// fb.attach_texture(&texture);
 /// fb.bind();
 ///

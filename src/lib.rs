@@ -1,15 +1,15 @@
 mod color;
 mod context;
-mod pixel;
 mod sprite;
 mod viewport;
-mod animation;
+// mod animation;
 pub mod errors;
 pub mod events;
+pub mod framebuffer;
+pub mod pixels;
 pub mod renderer;
 pub mod text;
 pub mod texture;
-pub mod framebuffer;
 
 pub use errors::Result;
 
@@ -19,8 +19,7 @@ pub use texture::Texture;
 pub use viewport::Viewport;
 pub use color::Color;
 pub use renderer::Renderer;
-pub use pixel::{Pixel, Pixels};
-pub use animation::Animation;
+// pub use animation::Animation;
 
 // -----------------------------------------------------------------------------
 //     - Vertex -

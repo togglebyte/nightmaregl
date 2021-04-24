@@ -1,5 +1,5 @@
 #![deny(missing_docs)]
-use crate::pixel::Pixel;
+use crate::pixels::Pixel;
 
 #[derive(Debug, Copy, Clone)]
 /// A colour with values ranging from 0.0 to 1.0

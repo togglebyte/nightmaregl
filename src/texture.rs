@@ -5,13 +5,13 @@ use std::fs::File;
 use std::io::BufWriter;
 use std::path::Path;
 
-use num_traits::cast::NumCast;
 use gl33::global_loader::*;
 use gl33::*;
+use num_traits::cast::NumCast;
 use png::{ColorType, Decoder, OutputInfo};
 
+use crate::errors::{NightmareError, Result};
 use crate::{Position, Size};
-use crate::errors::{Result, NightmareError};
 
 // -----------------------------------------------------------------------------
 //     - Output info extension -
@@ -136,7 +136,11 @@ impl TextureBuilder<NoFormat> {
             glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
         };
 
-        let texture = Texture { id: self.0, size, format };
+        let texture = Texture {
+            id: self.0,
+            size,
+            format,
+        };
 
         texture.min_filter(Filter::Nearest);
         texture.mag_filter(Filter::Nearest);
@@ -152,7 +156,6 @@ impl TextureBuilder<NoFormat> {
     }
 }
 
-
 impl TextureBuilder<Format> {
     /// Create a texture with some data.
     ///
@@ -167,7 +170,10 @@ impl TextureBuilder<Format> {
     /// ```
     pub fn with_data<T: Copy + NumCast>(self, data: &[u8], size: impl Into<Size<T>>) -> Texture<T> {
         let size = size.into().to_i32();
-        debug_assert_eq!(data.len(), size.width as usize * size.height as usize * self.1.size());
+        debug_assert_eq!(
+            data.len(),
+            size.width as usize * size.height as usize * self.1.size()
+        );
 
         unsafe {
             glTexImage2D(
@@ -183,7 +189,11 @@ impl TextureBuilder<Format> {
             )
         };
 
-        let texture = Texture { id: self.0, size: size.cast(), format: self.1 };
+        let texture = Texture {
+            id: self.0,
+            size: size.cast(),
+            format: self.1,
+        };
 
         texture.min_filter(Filter::Nearest);
         texture.mag_filter(Filter::Nearest);
@@ -212,7 +222,11 @@ impl TextureBuilder<Format> {
             )
         };
 
-        let texture = Texture { id: self.0, size: size.cast(), format: self.1 };
+        let texture = Texture {
+            id: self.0,
+            size: size.cast(),
+            format: self.1,
+        };
 
         texture.min_filter(Filter::Nearest);
         texture.mag_filter(Filter::Nearest);
@@ -251,15 +265,15 @@ impl<T: Copy + NumCast> Texture<T> {
 
     unsafe fn align_for_read(&self) {
         match self.format {
-            Format::Rgba => { glPixelStorei(GL_PACK_ALIGNMENT, 4) }
-            Format::Red => { glPixelStorei(GL_PACK_ALIGNMENT, 1) }
+            Format::Rgba => glPixelStorei(GL_PACK_ALIGNMENT, 4),
+            Format::Red => glPixelStorei(GL_PACK_ALIGNMENT, 1),
         }
     }
 
     unsafe fn align_for_write(&self) {
         match self.format {
-            Format::Rgba => { glPixelStorei(GL_UNPACK_ALIGNMENT, 4) }
-            Format::Red => { glPixelStorei(GL_UNPACK_ALIGNMENT, 1) }
+            Format::Rgba => glPixelStorei(GL_UNPACK_ALIGNMENT, 4),
+            Format::Red => glPixelStorei(GL_UNPACK_ALIGNMENT, 1),
         }
     }
 
@@ -337,7 +351,10 @@ impl<T: Copy + NumCast> Texture<T> {
     pub fn write_region(&self, position: Position<T>, size: Size<T>, data: &[u8]) {
         self.bind();
 
-        debug_assert!(data.len() <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size());
+        debug_assert!(
+            data.len()
+                <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size()
+        );
 
         if let Format::Red = self.format {
             unsafe { self.align_for_write() };
@@ -366,35 +383,35 @@ impl<T: Copy + NumCast> Texture<T> {
     }
 
     /// Read pixels out of a texture.
-    pub fn read_pixels(
-        &self,
-        position: Position<T>,
-        size: Size<T>,
-        output_buf: &mut [u8],
-    ) {
+    pub fn get_pixels<U: bytemuck::Pod>(&self) -> Vec<U> {
+        let cap = {
+            let size = self.size.cast::<usize>();
+            size.width * size.height
+        };
+
+        let mut output_buf: Vec<U> = Vec::with_capacity(cap);
+
         self.bind();
 
-        if let Format::Red = self.format {
-            unsafe { self.align_for_read() };
-        }
+        if let Format::Red = self.format { unsafe { self.align_for_read() }; }
 
         unsafe {
-            let position = position.to_i32();
-            let size = size.to_i32();
-            glReadPixels(
-                position.x,
-                position.y,
-                size.width,
-                size.height,
+            glGetTexImage(
+                GL_TEXTURE_2D,
+                0, // mipmap level
                 self.format.to_format(),
                 GL_UNSIGNED_BYTE,
                 output_buf.as_mut_ptr().cast(),
-            )
+            );
+
+            output_buf.set_len(cap);
         }
 
         if let Format::Red = self.format {
             unsafe { self.align_default() };
         }
+
+        output_buf
     }
 
     /// Load a texture from disk.
@@ -431,7 +448,9 @@ impl<T: Copy + NumCast> Texture<T> {
         // Create an OpenGL texture associated
         // with the sprite.
         let size = Size::new(info.width, info.height).cast::<T>();
-        let texture = Texture::<T>::new().with_format(format).with_data(&bytes, size);
+        let texture = Texture::<T>::new()
+            .with_format(format)
+            .with_data(&bytes, size);
 
         Ok(texture)
     }
@@ -464,7 +483,6 @@ impl<T: Copy + NumCast> Texture<T> {
 
         Ok(())
     }
-
 }
 
 // -----------------------------------------------------------------------------
@@ -473,7 +491,9 @@ impl<T: Copy + NumCast> Texture<T> {
 impl<T: Copy + NumCast> Drop for Texture<T> {
     fn drop(&mut self) {
         #[cfg(not(test))]
-        unsafe { glDeleteTextures(1, &self.id) };
+        unsafe {
+            glDeleteTextures(1, &self.id)
+        };
     }
 }
 
