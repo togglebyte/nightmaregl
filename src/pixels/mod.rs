@@ -9,99 +9,17 @@
 //!
 //! let bytes = pixels.as_bytes();
 //! ```
-use crate::{Color, Position, Size};
-use std::fmt;
 use std::ops::{Deref, DerefMut, Index, IndexMut};
 
+use bytemuck::Pod;
+
+use crate::{Position, Size};
+
 mod region;
+mod pixel;
 
+pub use pixel::{Pixel, BWPixel};
 pub use region::{Region, RegionMut};
-
-// -----------------------------------------------------------------------------
-//     - Pixel -
-// -----------------------------------------------------------------------------
-#[repr(C)]
-#[derive(Debug, Copy, Clone, PartialEq, bytemuck::Pod, bytemuck::Zeroable)]
-/// A pixel, as a set of rgba colours.
-pub struct Pixel {
-    /// Red
-    pub r: u8,
-    /// Green
-    pub g: u8,
-    /// Blue
-    pub b: u8,
-    /// Alpha
-    pub a: u8,
-}
-
-impl Pixel {
-    /// An all white pixel
-    pub fn white() -> Self {
-        Self {
-            r: 255,
-            g: 255,
-            b: 255,
-            a: 255,
-        }
-    }
-
-    /// An all black pixel
-    pub fn black() -> Self {
-        Self::default()
-    }
-
-    /// A transparent pixel (all values set to zero)
-    pub fn transparent() -> Self {
-        Self {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 0,
-        }
-    }
-}
-
-// -----------------------------------------------------------------------------
-//     - Pixel trait impl -
-// -----------------------------------------------------------------------------
-impl Default for Pixel {
-    fn default() -> Self {
-        Self {
-            r: 0,
-            g: 0,
-            b: 0,
-            a: 255,
-        }
-    }
-}
-
-impl fmt::Display for Pixel {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{:03} {:03} {:03} {:03}", self.r, self.g, self.b, self.a)
-    }
-}
-
-impl From<[u8; 4]> for Pixel {
-    fn from(color: [u8; 4]) -> Self {
-        Self {
-            r: color[0],
-            g: color[1],
-            b: color[2],
-            a: color[3],
-        }
-    }
-}
-
-impl From<Color> for Pixel {
-    fn from(color: Color) -> Self {
-        Self {
-            r: (255.0 * color.r) as u8,
-            g: (255.0 * color.g) as u8,
-            b: (255.0 * color.b) as u8,
-            a: (255.0 * color.a) as u8,
-        }
-    }
-}
 
 // -----------------------------------------------------------------------------
 //     - Pixel container -
@@ -118,12 +36,22 @@ impl From<Color> for Pixel {
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct Pixels(Vec<Pixel>);
+// pub struct Pixels(Vec<Pixel>);
+pub struct Pixels<T: Pod> {
+    inner: Vec<T>,
+    size: Size<usize>,
+}
 
-impl Pixels {
+impl<T: Pod> Pixels<T> {
     /// Create a new `Pixels` from a byte vec.
-    pub fn new(inner: impl Into<Vec<Pixel>>) -> Self {
-        Self(inner.into())
+    pub fn new(inner: impl Into<Vec<T>>, size: Size<usize>) -> Self {
+        let inner = inner.into();
+        debug_assert!(inner.len() == size.width * size.height);
+
+        Self { 
+           inner: inner.into(),
+           size,
+        }
     }
 
     /// Allocate a collection of pixels.
@@ -132,38 +60,44 @@ impl Pixels {
     /// This is bad if this is passed to `write_region` of a `Texture` as
     /// `glTexSubImage2D` is expecting to get width * height number of pixels,
     /// and if this isn't send, then the gpu will have to work with rubbish data.
-    pub fn from_size(size: Size<usize>) -> Self {
+    pub fn from_size_unchecked(size: Size<usize>) -> Self {
         let cap = size.width * size.height;
-        Self(Vec::with_capacity(cap))
+        Self {
+            inner: Vec::with_capacity(cap),
+            size,
+        }
     }
 
     /// Repeat the pixel width * height times.
-    pub fn from_pixel(pixel: Pixel, size: Size<usize>) -> Self {
+    pub fn from_pixel(pixel: T, size: Size<usize>) -> Self {
         let cap = size.width * size.height;
-        Self(vec![pixel; cap])
+        Self { 
+            inner: vec![pixel; cap],
+            size,
+        }
     }
 
     /// Interpret the pixels as a byte slice.
     pub fn as_bytes(&self) -> &[u8] {
-        bytemuck::cast_slice(&self.0)
+        bytemuck::cast_slice(&self.inner)
     }
 
     /// Add a pixel
-    pub fn push(&mut self, pixel: Pixel) {
-        self.0.push(pixel);
+    pub fn push(&mut self, pixel: T) {
+        self.inner.push(pixel);
     }
 
     /// Get an iterator over a region
     pub fn region(
         &self,
-        row_width: usize,
         position: Position<usize>,
         size: Size<usize>,
-    ) -> Region<Pixel> {
-        debug_assert!(row_width >= size.width + position.x);
+    ) -> Region<T> {
+        debug_assert!(self.size.width >= size.width + position.x);
+        debug_assert!(self.size.height >= size.height + position.y);
 
         let region = self
-            .chunks_exact(row_width)
+            .chunks_exact(self.size.width)
             .skip(position.y)
             .take(size.height)
             .map(|c| &c[position.x..size.width + position.x])
@@ -175,14 +109,15 @@ impl Pixels {
     /// Get an iterator over a region
     pub fn region_mut(
         &mut self,
-        row_width: usize,
         position: Position<usize>,
         size: Size<usize>,
-    ) -> RegionMut<Pixel> {
-        debug_assert!(row_width >= size.width + position.x);
+    ) -> RegionMut<T> {
+        debug_assert!(self.size.width >= size.width + position.x);
+        debug_assert!(self.size.height >= size.height + position.y);
 
+        let width = self.size.width;
         let region = self
-            .chunks_exact_mut(row_width)
+            .chunks_exact_mut(width)
             .skip(position.y)
             .take(size.height)
             .map(|c| &mut c[position.x..size.width + position.x])
@@ -194,15 +129,14 @@ impl Pixels {
     /// Write a region
     pub fn write_region(
         &mut self,
-        row_width: usize,
         position: Position<usize>,
-        region: Region<Pixel>,
+        region: Region<T>,
     ) {
 
         for (i, row) in region.rows().enumerate() {
-            let y = (position.y + i) * row_width;
+            let y = (position.y + i) * self.size.width;
             let index = y + position.x;
-            let dest = &mut self.0[index..index + row.len()];
+            let dest = &mut self.inner[index..index + row.len()];
             dest.copy_from_slice(row);
         }
 
@@ -213,45 +147,39 @@ impl Pixels {
 //     - Pixels trait impls -
 // -----------------------------------------------------------------------------
 
-impl Index<usize> for Pixels {
-    type Output = Pixel;
+impl<T: Pod> Index<usize> for Pixels<T> {
+    type Output = T;
 
     fn index(&self, index: usize) -> &Self::Output {
-        &self.0[index]
+        &self.inner[index]
     }
 }
 
-impl IndexMut<usize> for Pixels {
+impl<T: Pod> IndexMut<usize> for Pixels<T> {
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
-        &mut self.0[index]
+        &mut self.inner[index]
     }
 }
 
-impl Deref for Pixels {
-    type Target = Vec<Pixel>;
+impl<T: Pod> Deref for Pixels<T> {
+    type Target = Vec<T>;
 
     fn deref(&self) -> &Self::Target {
-        &self.0
+        &self.inner
     }
 }
 
-impl DerefMut for Pixels {
+impl<T: Pod> DerefMut for Pixels<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        &mut self.0
+        &mut self.inner
     }
 }
 
-impl IntoIterator for Pixels {
-    type Item = Pixel;
+impl<T: Pod> IntoIterator for Pixels<T> {
+    type Item = T;
     type IntoIter = std::vec::IntoIter<Self::Item>;
 
     fn into_iter(self) -> Self::IntoIter {
-        self.0.into_iter()
-    }
-}
-
-impl From<Vec<Pixel>> for Pixels {
-    fn from(p: Vec<Pixel>) -> Self {
-        Pixels(p)
+        self.inner.into_iter()
     }
 }

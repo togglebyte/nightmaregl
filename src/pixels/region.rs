@@ -129,18 +129,18 @@ mod test {
     #[test]
     fn get_region() {
         let pixels = vec![
-            p!(00), p!(01), p!(02), p!(03),
-            p!(04), p!(05), p!(06), p!(07),
-            p!(08), p!(09), p!(10), p!(11),
+            p!( 0), p!( 1), p!( 2), p!( 3),
+            p!( 4), p!( 5), p!( 6), p!( 7),
+            p!( 8), p!( 9), p!(10), p!(11),
             p!(12), p!(13), p!(14), p!(15),
         ];
-        let mut pixels = Pixels::new(pixels);
+        let mut pixels = Pixels::new(pixels, Size::new(4, 4));
         let row_width = 4;
         for i in 0..row_width * 4 {
             pixels[i] = Pixel { r: i as u8, ..Default::default() };
         }
 
-        let region = pixels.region(row_width, Position::new(1, 1), Size::new(2, 2));
+        let region = pixels.region(Position::new(1, 1), Size::new(2, 2));
 
         let mut rows = region.rows();
         assert_eq!(rows.next().unwrap(), vec![p!(5), p!(6)].as_slice());
@@ -158,18 +158,17 @@ mod test {
 
         let from = vec![
             p!(0), p!(0), p!(0), p!(0),
-            p!(0), p!(0), p!(0), p!(0),
             p!(1), p!(2), p!(3), p!(0),
             p!(4), p!(5), p!(6), p!(0),
         ];
 
         let row_width = 4;
-        let mut to_pixels = Pixels::new(to);
-        let from_pixels = Pixels::new(from);
+        let mut to_pixels = Pixels::new(to, Size::new(4, 4));
+        let from_pixels = Pixels::new(from, Size::new(4, 4));
 
         let position = Position::new(0, 2);
-        let region = from_pixels.region(row_width, position, Size::new(3, 2));
-        to_pixels.write_region(row_width, position, region);
+        let region = from_pixels.region(position, Size::new(3, 2));
+        to_pixels.write_region(position, region);
 
         assert_eq!(from_pixels.as_bytes(), to_pixels.as_bytes());
     }

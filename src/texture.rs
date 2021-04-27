@@ -12,6 +12,7 @@ use png::{ColorType, Decoder, OutputInfo};
 
 use crate::errors::{NightmareError, Result};
 use crate::{Position, Size};
+use crate::pixels::Pixels;
 
 // -----------------------------------------------------------------------------
 //     - Output info extension -
@@ -383,7 +384,7 @@ impl<T: Copy + NumCast> Texture<T> {
     }
 
     /// Read pixels out of a texture.
-    pub fn get_pixels<U: bytemuck::Pod>(&self) -> Vec<U> {
+    pub fn get_pixels<U: bytemuck::Pod>(&self) -> Pixels<U> {
         let cap = {
             let size = self.size.cast::<usize>();
             size.width * size.height
@@ -411,7 +412,7 @@ impl<T: Copy + NumCast> Texture<T> {
             unsafe { self.align_default() };
         }
 
-        output_buf
+        Pixels::new(output_buf, self.size.cast())
     }
 
     /// Load a texture from disk.
@@ -430,11 +431,9 @@ impl<T: Copy + NumCast> Texture<T> {
         let (info, mut reader) = decoder.read_info()?;
 
         // The size of a pixel in bytes.
-        // RGB  = u8 u8 u8
         // RGBA = u8 u8 u8 u8
         let (pixel_size, format) = match info.color_type {
             ColorType::Grayscale => (1, Format::Red),
-            // ColorType::RGB => (3, Format::Rgb),
             ColorType::RGBA => (4, Format::Rgba),
             _ => return Err(NightmareError::InvalidColorType),
         };
@@ -455,34 +454,26 @@ impl<T: Copy + NumCast> Texture<T> {
         Ok(texture)
     }
 
-    /// Write a texture to disk.
-    pub fn write_to_disk(&self, dst: impl AsRef<Path>) -> Result<()> {
-        let size = self.size.to_i32();
-        let mut output_buf = vec![0u8; (size.width * size.height) as usize * 4];
+    // /// Write a texture to disk.
+    // pub fn write_to_disk(&self, dst: impl AsRef<Path>) -> Result<()> {
+    //     panic!("This has not been tested since changed to use self.get_pixels()");
+    //     let size = self.size.to_i32();
+    //     let mut output_buf = self.get_pixels();
 
-        unsafe {
-            glReadPixels(
-                0,
-                0,
-                size.width,
-                size.height,
-                GL_RGBA,
-                GL_UNSIGNED_BYTE,
-                output_buf.as_mut_ptr().cast(),
-            );
-        }
+    //     let file = File::create(dst.as_ref())?;
+    //     let mut writer = BufWriter::new(file);
+    //     let size = size.to_u32();
+    //     let mut encoder = png::Encoder::new(&mut writer, size.width, size.height as u32);
+    //     match self.format {
+    //         Format::Rgba => encoder.set_color(png::ColorType::RGBA),
+    //         Format::Red => encoder.set_color(png::ColorType::Grayscale),
+    //     }
+    //     encoder.set_depth(png::BitDepth::Eight);
+    //     let mut writer = encoder.write_header().unwrap();
+    //     writer.write_image_data(output_buf.as_bytes())?;
 
-        let file = File::create(dst.as_ref())?;
-        let mut writer = BufWriter::new(file);
-        let size = size.to_u32();
-        let mut encoder = png::Encoder::new(&mut writer, size.width, size.height as u32);
-        encoder.set_color(png::ColorType::RGBA);
-        encoder.set_depth(png::BitDepth::Eight);
-        let mut writer = encoder.write_header().unwrap();
-        writer.write_image_data(&output_buf)?;
-
-        Ok(())
-    }
+    //     Ok(())
+    // }
 }
 
 // -----------------------------------------------------------------------------
