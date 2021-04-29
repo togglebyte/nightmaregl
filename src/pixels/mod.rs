@@ -60,7 +60,7 @@ impl<T: Pod> Pixels<T> {
     /// This is bad if this is passed to `write_region` of a `Texture` as
     /// `glTexSubImage2D` is expecting to get width * height number of pixels,
     /// and if this isn't send, then the gpu will have to work with rubbish data.
-    pub fn from_size_unchecked(size: Size<usize>) -> Self {
+    pub(crate) fn from_size_unchecked(size: Size<usize>) -> Self {
         let cap = size.width * size.height;
         Self {
             inner: Vec::with_capacity(cap),
@@ -82,12 +82,13 @@ impl<T: Pod> Pixels<T> {
         bytemuck::cast_slice(&self.inner)
     }
 
-    /// Add a pixel
-    pub fn push(&mut self, pixel: T) {
-        self.inner.push(pixel);
+    /// Get the size of the pixel buffer
+    /// as a width and a height.
+    pub fn size(&self) -> Size<usize> {
+        self.size
     }
 
-    /// Get an iterator over a region
+    /// Get an iterator over a region.
     pub fn region(
         &self,
         position: Position<usize>,
@@ -140,6 +141,14 @@ impl<T: Pod> Pixels<T> {
             dest.copy_from_slice(row);
         }
 
+    }
+
+    /// Insert a pixel at a given location.
+    pub fn insert_pixel(&mut self, pixel: T, pos: Position<usize>) {
+        debug_assert!(pos.x <= self.size.width);
+        debug_assert!(pos.y <= self.size.height);
+        let index = pos.y * self.size.width + pos.x;
+        self.inner[index] = pixel;
     }
 }
 

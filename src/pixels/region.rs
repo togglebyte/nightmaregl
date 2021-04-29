@@ -29,7 +29,7 @@ pub struct Region<'a, T> {
 
 impl<'a, T> Region<'a, T> {
     /// Iterator over rows of pixels
-    pub fn rows(&self) -> impl Iterator<Item=&[T]> {
+    pub fn rows(&self) -> impl DoubleEndedIterator<Item=&[T]> {
         self.inner.iter().cloned()
     }
 }
