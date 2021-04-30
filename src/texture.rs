@@ -9,6 +9,7 @@ use gl33::global_loader::*;
 use gl33::*;
 use num_traits::cast::NumCast;
 use png::{ColorType, Decoder, OutputInfo};
+use bytemuck::Pod;
 
 use crate::errors::{NightmareError, Result};
 use crate::{Position, Size};
@@ -454,26 +455,28 @@ impl<T: Copy + NumCast> Texture<T> {
         Ok(texture)
     }
 
-    // /// Write a texture to disk.
-    // pub fn write_to_disk(&self, dst: impl AsRef<Path>) -> Result<()> {
-    //     panic!("This has not been tested since changed to use self.get_pixels()");
-    //     let size = self.size.to_i32();
-    //     let mut output_buf = self.get_pixels();
+    /// Write a texture to disk.
+    pub fn write_to_disk<U: Pod, V: AsRef<Path>>(&self, dst: V) -> Result<()> {
+        let size = self.size.to_i32();
+        let output_buf = self.get_pixels::<U>();
 
-    //     let file = File::create(dst.as_ref())?;
-    //     let mut writer = BufWriter::new(file);
-    //     let size = size.to_u32();
-    //     let mut encoder = png::Encoder::new(&mut writer, size.width, size.height as u32);
-    //     match self.format {
-    //         Format::Rgba => encoder.set_color(png::ColorType::RGBA),
-    //         Format::Red => encoder.set_color(png::ColorType::Grayscale),
-    //     }
-    //     encoder.set_depth(png::BitDepth::Eight);
-    //     let mut writer = encoder.write_header().unwrap();
-    //     writer.write_image_data(output_buf.as_bytes())?;
 
-    //     Ok(())
-    // }
+        let file = File::create(dst.as_ref())?;
+        let mut writer = BufWriter::new(file);
+        let size = size.to_u32();
+        let mut encoder = png::Encoder::new(&mut writer, size.width, size.height as u32);
+
+        match self.format {
+            Format::Rgba => encoder.set_color(png::ColorType::RGBA),
+            Format::Red => encoder.set_color(png::ColorType::Grayscale),
+        }
+
+        encoder.set_depth(png::BitDepth::Eight);
+        let mut writer = encoder.write_header().unwrap();
+        writer.write_image_data(output_buf.as_bytes())?;
+
+        Ok(())
+    }
 }
 
 // -----------------------------------------------------------------------------
