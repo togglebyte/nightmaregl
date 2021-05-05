@@ -86,12 +86,63 @@ impl Viewport {
     ///
     /// ```
     /// use nightmaregl::{Size, Position, Viewport};
-    /// let main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
-    /// let sub = main_vp.sub_viewport(Position::new(5, 5), Size::new(10, 10));
-    /// assert_eq!(sub.position, Position::new(10 + 5, 10 + 5));
-    /// assert_eq!(*sub.size(), Size::new(100 - 10, 100 - 10));
+    /// let mut main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
+    /// let mut sub = main_vp.sub_viewport(Position::new(5, 5), Size::new(10, 10));
+    /// assert_eq!(sub.viewport().position, Position::new(10 + 5, 10 + 5));
+    /// assert_eq!(*sub.viewport().size(), Size::new(100 - 10, 100 - 10));
+    ///
+    /// // Resize the main viewport
+    /// main_vp.resize(Size::new(50, 50));
+    /// sub.resize(&main_vp);
+    /// assert_eq!(*sub.viewport().size(), Size::new(50 - 10, 50 - 10));
     /// ```
-    pub fn sub_viewport(&self, position: Position<i32>, size: Size<i32>) -> Viewport {
-        Viewport::new(self.position + position, self.size - size)
+    pub fn sub_viewport(
+        &self,
+        bottom_left: Position<i32>,
+        top_right: Position<i32>
+    ) -> RelativeViewport {
+        RelativeViewport::new(bottom_left, top_right, &self)
+    }
+}
+
+// -----------------------------------------------------------------------------
+//     - Relative viewport -
+// -----------------------------------------------------------------------------
+/// This viewport is relative to another viewport.
+#[derive(Debug)]
+pub struct RelativeViewport {
+    inner: Viewport,
+    bottom_left: Position<i32>,
+    top_right: Position<i32>,
+}
+
+impl RelativeViewport {
+    fn new(bottom_left: Position<i32>, top_right: Position<i32>, relative_to: &Viewport) -> Self {
+        let position = relative_to.position + bottom_left;
+
+        let size = Size::new(
+            relative_to.size.width - top_right.x,
+            relative_to.size.height - top_right.y,
+        );
+
+        let inner = Viewport::new(
+            position,
+            size,
+        );
+
+        Self {
+            inner,
+            bottom_left,
+            top_right,
+        }
+    }
+
+    /// Resize the viewport based on the relative viewport.
+    pub fn resize(&mut self, relative_to: &Viewport) {
+        self.inner.resize(relative_to.size - Size::new(self.top_right.x, self.top_right.y));
+    }
+
+    pub fn viewport(&self) -> &Viewport {
+        &self.inner
     }
 }
