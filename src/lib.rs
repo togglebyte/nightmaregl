@@ -16,7 +16,7 @@ pub use errors::Result;
 pub use context::Context;
 pub use sprite::{VertexData, Sprite, FillMode};
 pub use texture::Texture;
-pub use viewport::Viewport;
+pub use viewport::{Viewport, RelativeViewport};
 pub use color::Color;
 pub use renderer::Renderer;
 // pub use animation::Animation;

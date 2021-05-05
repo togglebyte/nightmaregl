@@ -138,10 +138,12 @@ impl RelativeViewport {
     }
 
     /// Resize the viewport based on the relative viewport.
+    /// This should be called after the origin viewport has been resized.
     pub fn resize(&mut self, relative_to: &Viewport) {
         self.inner.resize(relative_to.size - Size::new(self.top_right.x, self.top_right.y));
     }
 
+    /// Get a reference to the underlying viewport.
     pub fn viewport(&self) -> &Viewport {
         &self.inner
     }
