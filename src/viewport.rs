@@ -13,7 +13,7 @@ use crate::{Position, Size};
 ///     Size::new(800, 600)
 /// );
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Copy, Clone)]
 pub struct Viewport {
     /// The screen position of the viewport
     pub position: Position<i32>,
@@ -87,16 +87,16 @@ impl Viewport {
     /// ```
     /// use nightmaregl::{Size, Position, Viewport};
     /// let mut main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
-    /// let mut sub = main_vp.sub_viewport(Position::new(5, 5), Size::new(10, 10));
+    /// let mut sub = main_vp.relative(Position::new(5, 5), Size::new(10, 10));
     /// assert_eq!(sub.viewport().position, Position::new(10 + 5, 10 + 5));
-    /// assert_eq!(*sub.viewport().size(), Size::new(100 - 10, 100 - 10));
+    /// assert_eq!(*sub.viewport().size(), Size::new(100 - 20, 100 - 20));
     ///
     /// // Resize the main viewport
     /// main_vp.resize(Size::new(50, 50));
     /// sub.resize(&main_vp);
     /// assert_eq!(*sub.viewport().size(), Size::new(50 - 10, 50 - 10));
     /// ```
-    pub fn sub_viewport(
+    pub fn relative(
         &self,
         bottom_left: Position<i32>,
         top_right: Position<i32>
@@ -112,17 +112,21 @@ impl Viewport {
 #[derive(Debug)]
 pub struct RelativeViewport {
     inner: Viewport,
-    bottom_left: Position<i32>,
-    top_right: Position<i32>,
+    padding_bottom_left: Position<i32>,
+    padding_top_right: Position<i32>,
 }
 
 impl RelativeViewport {
-    fn new(bottom_left: Position<i32>, top_right: Position<i32>, relative_to: &Viewport) -> Self {
-        let position = relative_to.position + bottom_left;
+    fn new(
+        padding_bottom_left: Position<i32>, 
+        padding_top_right: Position<i32>, 
+        relative_to: &Viewport
+    ) -> Self {
+        let position = relative_to.position + padding_bottom_left;
 
         let size = Size::new(
-            relative_to.size.width - top_right.x,
-            relative_to.size.height - top_right.y,
+            relative_to.size.width - padding_top_right.x - padding_bottom_left.x,
+            relative_to.size.height - padding_top_right.y - padding_bottom_left.y,
         );
 
         let inner = Viewport::new(
@@ -132,15 +136,20 @@ impl RelativeViewport {
 
         Self {
             inner,
-            bottom_left,
-            top_right,
+            padding_bottom_left,
+            padding_top_right,
         }
     }
 
     /// Resize the viewport based on the relative viewport.
     /// This should be called after the origin viewport has been resized.
     pub fn resize(&mut self, relative_to: &Viewport) {
-        self.inner.resize(relative_to.size - Size::new(self.top_right.x, self.top_right.y));
+        let florp = self.padding_top_right + self.padding_bottom_left;
+        let size_offset = Size::new(
+            florp.x,
+            florp.y
+        );
+        self.inner.resize(relative_to.size - size_offset)
     }
 
     /// Get a reference to the underlying viewport.
