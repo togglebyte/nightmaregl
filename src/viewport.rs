@@ -87,11 +87,11 @@ impl Viewport {
     /// ```
     /// use nightmaregl::{Size, Position, Viewport};
     /// let main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
-    /// let sub = main_vp.create_sub_viewport(Position::new(5, 5), Size::new(10, 10));
+    /// let sub = main_vp.sub_viewport(Position::new(5, 5), Size::new(10, 10));
     /// assert_eq!(sub.position, Position::new(10 + 5, 10 + 5));
     /// assert_eq!(*sub.size(), Size::new(100 - 10, 100 - 10));
     /// ```
-    pub fn create_sub_viewport(&self, position: Position<i32>, size: Size<i32>) -> Viewport {
+    pub fn sub_viewport(&self, position: Position<i32>, size: Size<i32>) -> Viewport {
         Viewport::new(self.position + position, self.size - size)
     }
 }
