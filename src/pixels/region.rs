@@ -14,7 +14,7 @@ use crate::Position;
 /// let green = Pixel { g: 255, ..Default::default() };
 /// let pixels = Pixels::from_pixel(green, size);
 ///
-/// let region = pixels.region(size.width, Position::new(2, 2), Size::new(3, 3));
+/// let region = pixels.region(Position::new(2, 2), Size::new(3, 3));
 ///
 /// // . . . . . .
 /// // . . . . . .
@@ -160,13 +160,14 @@ mod test {
             p!(0), p!(0), p!(0), p!(0),
             p!(1), p!(2), p!(3), p!(0),
             p!(4), p!(5), p!(6), p!(0),
+            p!(0), p!(0), p!(0), p!(0),
         ];
 
         let row_width = 4;
         let mut to_pixels = Pixels::new(to, Size::new(4, 4));
         let from_pixels = Pixels::new(from, Size::new(4, 4));
 
-        let position = Position::new(0, 2);
+        let position = Position::new(0, 1);
         let region = from_pixels.region(position, Size::new(3, 2));
         to_pixels.write_region(position, region);
 

@@ -79,4 +79,19 @@ impl Viewport {
     pub fn centre(&self) -> Position<i32> {
         Position::new(self.size.width / 2, self.size.height / 2)
     }
+
+    /// Create a sub viewport based on this viewport.
+    /// The position is the offset from the bottom left corner of the viewport.
+    /// The size is the padding omghelpwhat
+    ///
+    /// ```
+    /// use nightmaregl::{Size, Position, Viewport};
+    /// let main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
+    /// let sub = main_vp.create_sub_viewport(Position::new(5, 5), Size::new(10, 10));
+    /// assert_eq!(sub.position, Position::new(10 + 5, 10 + 5));
+    /// assert_eq!(*sub.size(), Size::new(100 - 10, 100 - 10));
+    /// ```
+    pub fn create_sub_viewport(&self, position: Position<i32>, size: Size<i32>) -> Viewport {
+        Viewport::new(self.position + position, self.size - size)
+    }
 }

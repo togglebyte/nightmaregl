@@ -3,9 +3,10 @@
 //!
 //! ```
 //! use nightmaregl::pixels::{Pixel, Pixels};
+//! use nightmaregl::Size;
 //! let green = Pixel { g: 255, ..Default::default() };
 //! let red = Pixel { r: 255, ..Default::default() };
-//! let pixels = Pixels::new([green, red]);
+//! let pixels = Pixels::new([green, red], Size::new(2, 1));
 //!
 //! let bytes = pixels.as_bytes();
 //! ```
@@ -29,10 +30,15 @@ pub use region::{Region, RegionMut};
 /// represents all pixels as a byte slice.
 ///
 /// ```
-/// use nightmaregl::pixels::Pixels;
+/// use nightmaregl::pixels::{Pixel, Pixels};
 /// # use nightmaregl::Size;
 /// # fn run() {
-/// let mut pixels = Pixels::from_size(Size::new(20, 20));
+/// // Pixels from a collection of pixels
+/// let pixels = Pixels::new(vec![Pixel::default()], Size::new(1, 1));
+///
+/// // Pixels from a single pixel copied to fill the entire
+/// // pixel buffer
+/// let pixels = Pixels::from_pixel(Pixel::default(), Size::new(20, 20));
 /// # }
 /// ```
 #[derive(Debug)]
@@ -43,7 +49,7 @@ pub struct Pixels<T: Pod> {
 }
 
 impl<T: Pod> Pixels<T> {
-    /// Create a new `Pixels` from a byte vec.
+    /// Create new `Pixels`.
     pub fn new(inner: impl Into<Vec<T>>, size: Size<usize>) -> Self {
         let inner = inner.into();
         debug_assert!(inner.len() == size.width * size.height);
@@ -127,7 +133,7 @@ impl<T: Pod> Pixels<T> {
         RegionMut { inner: region }
     }
 
-    /// Write a region
+    /// Write a region of pixels
     pub fn write_region(
         &mut self,
         position: Position<usize>,
