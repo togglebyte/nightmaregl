@@ -118,7 +118,6 @@ impl<'a, T> IndexMut<(usize, usize)> for RegionMut<'a, T> {
 mod test {
     use crate::Size;
     use crate::pixels::*;
-    use super::*;
 
     macro_rules! p {
         ($r:expr) => {
@@ -163,7 +162,6 @@ mod test {
             p!(0), p!(0), p!(0), p!(0),
         ];
 
-        let row_width = 4;
         let mut to_pixels = Pixels::new(to, Size::new(4, 4));
         let from_pixels = Pixels::new(from, Size::new(4, 4));
 

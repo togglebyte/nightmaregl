@@ -87,14 +87,15 @@ impl Viewport {
     /// ```
     /// use nightmaregl::{Size, Position, Viewport};
     /// let mut main_vp = Viewport::new(Position::new(10, 10), Size::new(100, 100));
-    /// let mut sub = main_vp.relative(Position::new(5, 5), Size::new(10, 10));
-    /// assert_eq!(sub.viewport().position, Position::new(10 + 5, 10 + 5));
-    /// assert_eq!(*sub.viewport().size(), Size::new(100 - 20, 100 - 20));
+    /// let mut sub = main_vp.relative(Position::new(5, 5), Position::new(5, 5));
+    /// assert_eq!(sub.viewport().position, Position::new(15, 15));
+    /// assert_eq!(*sub.viewport().size(), Size::new(90, 90));
     ///
     /// // Resize the main viewport
     /// main_vp.resize(Size::new(50, 50));
     /// sub.resize(&main_vp);
-    /// assert_eq!(*sub.viewport().size(), Size::new(50 - 10, 50 - 10));
+    /// assert_eq!(sub.viewport().position, Position::new(15, 15));
+    /// assert_eq!(*sub.viewport().size(), Size::new(40, 40));
     /// ```
     pub fn relative(
         &self,
