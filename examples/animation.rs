@@ -13,16 +13,16 @@ fn main() -> Result<()> {
     let mut renderer = Renderer::<VertexData>::default(&mut context)?;
     renderer.pixel_size = 8;
 
-    let texture = Texture::from_disk("examples/anim.png")?;
-    let mut sprite = Sprite::new(&texture);
-    sprite.size = Size::new(32, 32);
-    sprite.texture_rect = Rect::new(Point::zero(), Size::new(32, 32));
-    sprite.position = (*viewport.size() / 2).to_vector() / renderer.pixel_size;
-    sprite.anchor = (sprite.size / 2).to_vector();
+    let texture = Texture::<i32>::from_disk("examples/anim.png")?;
+    // let mut sprite = Sprite::new(&texture);
+    // sprite.size = Size::new(32, 32);
+    // sprite.texture_rect = Rect::new(Point::zero(), Size::new(32, 32));
+    // sprite.position = (*viewport.size() / 2).to_vector() / renderer.pixel_size;
+    // sprite.anchor = (sprite.size / 2).to_vector();
 
-    let mut animation = Animation::new(sprite, 1, 3, 32);
+    let mut animation = Animation::from_texture(&texture, 1, 3, 32, 40);
     animation.fps = 4.0;
-    animation.should_loop = true;
+    animation.repeat = true;
 
     eventloop.run(move |event| {
         match event {
