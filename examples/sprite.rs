@@ -1,4 +1,4 @@
-use nightmaregl::events::{Event, Key, LoopAction};
+use nightmaregl::events::{Event, Key, LoopAction, EventLoop};
 use nightmaregl::{Size, Color, Context, Position, Result, Sprite, Renderer, Viewport, Rotation};
 use nightmaregl::texture::Texture;
 
@@ -6,11 +6,13 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     //     - Context -
     // -----------------------------------------------------------------------------
-    let (eventloop, mut context) = Context::builder("Best game ever!")
+    let (el, mut context) = Context::builder("Best game ever!")
         .resizable(false)
         .vsync(false)
         .with_size(Size::new(800, 600))
         .build()?;
+
+    let eventloop = EventLoop::new(el);
 
     // -----------------------------------------------------------------------------
     //     - Renderer and Viewport -

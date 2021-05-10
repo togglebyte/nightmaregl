@@ -6,24 +6,11 @@ use std::time::Instant;
 
 use glutin::event::Event as WinitEvent;
 use glutin::event::{KeyboardInput, WindowEvent};
-use glutin::event_loop::ControlFlow;
+use glutin::event_loop::{ControlFlow, EventLoop as WinitEventLoop};
 
 pub use glutin::event::{ModifiersState as Modifiers, VirtualKeyCode as Key, ElementState as KeyState};
 
 use crate::Size;
-
-/// For every iteration of the loop return one
-/// variant of this enum.
-pub enum LoopAction {
-    /// Continue the loop
-    Continue,
-
-    /// Quit
-    Quit,
-}
-
-/// The event loop. See the [`run`] function for an example.
-pub struct EventLoop(pub(crate) glutin::event_loop::EventLoop<()>);
 
 /// An event provided by the event loop.
 pub enum Event {
@@ -51,7 +38,26 @@ pub enum Event {
     Resize(Size<u32>),
 }
 
+/// For every iteration of the loop return one
+/// variant of this enum.
+pub enum LoopAction {
+    /// Continue the loop
+    Continue,
+
+    /// Quit
+    Quit,
+}
+
+/// The event loop. See the [`run`] function for an example.
+pub struct EventLoop(pub(crate) WinitEventLoop<()>);
+
 impl EventLoop {
+    /// Create a new instance of an event loop, 
+    /// consuming the underlying Glutin (winit) event loop.
+    pub fn new(el: WinitEventLoop<()>) -> Self {
+        Self(el)
+    }
+
     /// Start the event loop.
     /// This will never return.
     ///
@@ -103,5 +109,11 @@ impl EventLoop {
                 LoopAction::Continue => {}
             }
         });
+    }
+}
+
+impl From<WinitEventLoop<()>> for EventLoop {
+    fn from(el: WinitEventLoop<()>) -> Self {
+        Self(el)
     }
 }

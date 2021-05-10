@@ -1,4 +1,4 @@
-use nightmaregl::events::{Event, Key, KeyState, LoopAction};
+use nightmaregl::events::{Event, Key, KeyState, LoopAction, EventLoop};
 use nightmaregl::texture::{Texture, Wrap};
 use nightmaregl::{
     Animation, Color, Context, Position, Rect, Renderer, Result, Rotation, Size, Sprite,
@@ -6,7 +6,8 @@ use nightmaregl::{
 };
 
 fn main() -> Result<()> {
-    let (eventloop, mut context) = Context::builder("Best game ever!").build()?;
+    let (el, mut context) = Context::builder("Best game ever!").build()?;
+    let eventloop = EventLoop::new(el);
 
     let window_size = context.window_size();
     let mut viewport = Viewport::new(Position::zero(), window_size);

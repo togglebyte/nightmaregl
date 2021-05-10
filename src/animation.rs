@@ -133,7 +133,6 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
 #[cfg(test)]
 mod test {
     use super::*;
-    use crate::texture::test_texture;
     use crate::{Size, Sprite};
 
     fn make_sprite() -> Sprite<u16> {

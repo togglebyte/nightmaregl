@@ -2,14 +2,14 @@
 use num_traits::cast::NumCast;
 use gl33::global_loader::*;
 use gl33::*;
-use glutin::event_loop::EventLoop as WinitEventLoop;
+use glutin::event_loop::EventLoop;
 use glutin::window::Window;
 use glutin::window::WindowBuilder;
 use glutin::{
     Api, ContextBuilder as GlutinContextBuilder, ContextWrapper, GlRequest, PossiblyCurrent,
 };
 
-use crate::{Color, Result, Size, events::EventLoop};
+use crate::{Color, Result, Size};
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]
@@ -113,8 +113,8 @@ impl ContextBuilder {
         self
     }
 
-    pub fn from_builder(&self, win_builder: WindowBuilder) -> Result<(EventLoop, Context)> {
-        let event_loop = WinitEventLoop::<()>::new();
+    pub fn from_builder(&self, win_builder: WindowBuilder) -> Result<(EventLoop<()>, Context)> {
+        let event_loop = EventLoop::<()>::new();
 
         // Set this to 3.3
         let context = GlutinContextBuilder::new()
@@ -152,11 +152,11 @@ impl ContextBuilder {
             current_vao_id: 0,
         };
 
-        Ok((EventLoop(event_loop), inst))
+        Ok((event_loop, inst))
     }
 
     /// Finalise the context builder and produce a [`Context`]
-    pub fn build(&mut self) -> Result<(EventLoop, Context)> {
+    pub fn build(&mut self) -> Result<(EventLoop<()>, Context)> {
         let mut window_builder = WindowBuilder::new()
             .with_title(&self.title)
             .with_resizable(self.resizable)

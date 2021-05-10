@@ -109,6 +109,7 @@ impl TextureBuilder<NoFormat> {
     }
 
     /// One bit aligned, red channel only texture.
+    #[cfg(feature="text")]
     pub(crate) fn empty_text<T: Copy + NumCast>(self, size: impl Into<Size<T>>) -> Texture<T> {
         let size = size.into();
         let format = Format::Red;
@@ -488,18 +489,5 @@ impl<T: Copy + NumCast> Drop for Texture<T> {
         unsafe {
             glDeleteTextures(1, &self.id)
         };
-    }
-}
-
-// -----------------------------------------------------------------------------
-//     - Test helpers -
-// -----------------------------------------------------------------------------
-#[cfg(test)]
-/// Don't use this
-pub fn test_texture<T: NumCast + Copy>(size: Size<T>) -> Texture<T> {
-    Texture {
-        id: 0,
-        size,
-        format: Format::Rgba,
     }
 }

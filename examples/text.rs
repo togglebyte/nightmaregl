@@ -1,9 +1,10 @@
-use nightmaregl::events::{Event, LoopAction};
+use nightmaregl::events::{Event, LoopAction, EventLoop};
 use nightmaregl::text::{Text, WordWrap};
 use nightmaregl::{Color, Context, Position, Renderer, Result, Viewport};
 
 fn main() -> Result<()> {
-    let (eventloop, mut context) = Context::builder("Best game ever!").build()?;
+    let (el, mut context) = Context::builder("Best game ever!").build()?;
+    let eventloop = EventLoop::new(el);
 
     let window_size = context.window_size();
     let viewport = Viewport::new(Position::zero(), window_size);
