@@ -1,8 +1,12 @@
 #![deny(missing_docs)]
+use std::ops::{Div, MulAssign};
+
+use nalgebra::Scalar;
 use num_traits::cast::NumCast;
+use num_traits::Zero;
 
 use crate::sprite::Sprite;
-use crate::Point;
+use crate::{VertexData, Point};
 
 /// Represent a sprite as an animation.
 ///
@@ -29,6 +33,7 @@ use crate::Point;
 /// assert_eq!(animation.sprite.texture_rect.origin, Point::new(64, 0));
 /// assert_eq!(animation.current_frame(), 2);
 /// ```
+#[derive(Debug, Copy, Clone)]
 pub struct Animation<T> {
     cols: u16,
     stride: u16,
@@ -43,7 +48,7 @@ pub struct Animation<T> {
     elapsed: f32,
 }
 
-impl<T: Copy + NumCast> Animation<T> {
+impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> Animation<T> {
     /// Create a new animations, where `stride` is the distance between
     /// frames. This means that a sprite sheet has to contain frames that are all
     /// of the same size.
@@ -76,6 +81,11 @@ impl<T: Copy + NumCast> Animation<T> {
     /// Get the current frame, starting from zero.
     pub fn current_frame(&self) -> u16 {
         self.current_frame
+    }
+
+    /// Get the vertex data from the underlying sprite.
+    pub fn vertex_data(&self) -> VertexData {
+        self.sprite.vertex_data()
     }
 
     fn next(&mut self) {
