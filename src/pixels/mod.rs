@@ -42,7 +42,6 @@ pub use region::{Region, RegionMut};
 /// # }
 /// ```
 #[derive(Debug)]
-// pub struct Pixels(Vec<Pixel>);
 pub struct Pixels<T: Pod> {
     inner: Vec<T>,
     size: Size<usize>,
@@ -59,20 +58,6 @@ impl<T: Pod> Pixels<T> {
            size,
         }
     }
-
-    // /// Allocate a collection of pixels.
-    // /// Note that this will not fill the buffer with values,
-    // /// so the length of this buffer is really 0.
-    // /// This is bad if this is passed to `write_region` of a `Texture` as
-    // /// `glTexSubImage2D` is expecting to get width * height number of pixels,
-    // /// and if this isn't send, then the gpu will have to work with rubbish data.
-    // pub(crate) fn from_size_unchecked(size: Size<usize>) -> Self {
-    //     let cap = size.width * size.height;
-    //     Self {
-    //         inner: Vec::with_capacity(cap),
-    //         size,
-    //     }
-    // }
 
     /// Repeat the pixel width * height times.
     pub fn from_pixel(pixel: T, size: Size<usize>) -> Self {

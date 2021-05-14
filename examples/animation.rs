@@ -1,8 +1,7 @@
-use nightmaregl::events::{Event, Key, KeyState, LoopAction, EventLoop};
-use nightmaregl::texture::{Texture, Wrap};
+use nightmaregl::events::{Event, EventLoop, LoopAction};
+use nightmaregl::texture::Texture;
 use nightmaregl::{
-    Animation, Color, Context, Position, Rect, Renderer, Result, Rotation, Size, Sprite,
-    VertexData, Viewport, Point,
+    Animation, Color, Context, Position, Renderer, Result, VertexData, Viewport,
 };
 
 fn main() -> Result<()> {
@@ -10,7 +9,7 @@ fn main() -> Result<()> {
     let eventloop = EventLoop::new(el);
 
     let window_size = context.window_size();
-    let mut viewport = Viewport::new(Position::zero(), window_size);
+    let viewport = Viewport::new(Position::zero(), window_size);
     let mut renderer = Renderer::<VertexData>::default(&mut context)?;
     renderer.pixel_size = 8;
 
@@ -30,7 +29,7 @@ fn main() -> Result<()> {
             Event::Draw(dt) => {
                 context.clear(Color::grey());
 
-                renderer.render(
+                let _ = renderer.render(
                     &texture,
                     &[animation.vertex_data()],
                     &viewport,
@@ -46,6 +45,4 @@ fn main() -> Result<()> {
 
         LoopAction::Continue
     });
-
-    Ok(())
 }

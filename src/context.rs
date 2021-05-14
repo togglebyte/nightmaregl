@@ -183,7 +183,8 @@ impl ContextBuilder {
 //     - Context -
 // -----------------------------------------------------------------------------
 /// Context holds the open gl context and an event loop.
-/// ```ignore
+/// ```
+/// # fn run() {
 /// use nightmaregl::Context;
 ///
 /// let (event_loop, context) = Context::builder("window title")
@@ -195,6 +196,7 @@ impl ContextBuilder {
 /// // Draw 
 ///
 /// context.swap_buffers();
+/// }
 /// ```
 pub struct Context {
     inner: ContextWrapper<PossiblyCurrent, Window>,
