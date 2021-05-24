@@ -32,7 +32,7 @@ fn main() -> Result<()> {
     let texture = Texture::from_disk("examples/buny.png")?;
     let mut sprite = Sprite::new(&texture);
     sprite.position = viewport.centre().to_f32() / renderer.pixel_size as f32;
-    sprite.anchor = Position::new(sprite.size.width / 2.0, sprite.size.height / 2.0);
+    sprite.anchor = (sprite.size / 2.0).to_vector();
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -48,8 +48,8 @@ fn main() -> Result<()> {
 
                 // Move the sprite a bit
                 sprite.position = viewport.centre().cast::<f32>() / renderer.pixel_size as f32;
-                sprite.position += Position::new(t.sin(), t.cos()) * 40.0;
-                sprite.position -= Position::new(sprite.size.width, sprite.size.height * 2.0);
+                sprite.position += Position::new(t.sin(), t.cos()) * 20.0;
+                sprite.position -= Position::new(sprite.size.width, sprite.size.height);
 
                 // ... and rotate it
                 sprite.rotation = Rotation::radians(t / 1.0);
@@ -57,7 +57,7 @@ fn main() -> Result<()> {
                 // Draw the sprite
                 let res = renderer.render(
                 	&texture,
-                	&vec![sprite.vertex_data_scaled(renderer.pixel_size as f32)],
+                	&vec![sprite.vertex_data()],
                 	&viewport,
                 	&mut context
                 );

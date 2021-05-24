@@ -57,7 +57,7 @@ impl<'a, T: fmt::Debug> fmt::Debug for Region<'a, T> {
             for col in row {
                 write!(f, "{:?} | ", col)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())
@@ -71,7 +71,7 @@ impl<'a, T: fmt::Display> fmt::Display for Region<'a, T> {
             for col in row {
                 write!(f, " {} |", col)?;
             }
-            write!(f, "\n")?;
+            writeln!(f)?;
         }
 
         Ok(())

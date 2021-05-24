@@ -45,7 +45,7 @@ impl<T> Vbo<T> {
 
 impl<T> Drop for Vbo<T> {
     fn drop(&mut self) {
-        unsafe { glDeleteBuffers(1, &mut self.0) };
+        unsafe { glDeleteBuffers(1, &self.0) };
     }
 }
 
@@ -90,7 +90,7 @@ pub fn new_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
 /// To use different vertex data with a different layout create new `VertexPointers` with 
 /// a different layout.
 pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
-    let vertex_pointers = new_vertex_pointers(context)
+    new_vertex_pointers(context)
         .with_divisor(1)
         .add(3, 4, GlType::Float, false)
         .add(4, 4, GlType::Float, false)
@@ -98,9 +98,7 @@ pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
         .add(6, 4, GlType::Float, false)
         .add(10, 2, GlType::Float, false)
         .add(11, 2, GlType::Float, false)
-        .add(12, 2, GlType::Float, false);
-
-    vertex_pointers
+        .add(12, 2, GlType::Float, false)
 }
 
 /// OpenGL data type
@@ -171,9 +169,8 @@ impl<T> VertexPointers<T> {
 
         unsafe { glEnableVertexAttribArray(position) };
 
-        match self.divisor {
-            Some(divisor) => unsafe { glVertexAttribDivisor(position, divisor) },
-            None => {}
+        if let Some(divisor) = self.divisor {
+            unsafe { glVertexAttribDivisor(position, divisor) }
         }
 
         self.next_offset += param_count as u32

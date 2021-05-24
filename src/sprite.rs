@@ -97,7 +97,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
     pub fn from_size(texture_size: Size<T>) -> Sprite<T> {
         Self {
             size: texture_size,
-            texture_size: texture_size,
+            texture_size,
             position: Position::zero(),
             rotation: Rotation::zero(),
             texture_rect: Rect::new(Point::zero(), texture_size.cast()),
@@ -109,24 +109,39 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
 
     /// Create a model matrix
     pub fn model(&self) -> Matrix4<f32> {
-        self.model_scaled(1.0)
-    }
-
-    /// Crate a scaled model matrix
-    pub fn model_scaled(&self, scale: f32) -> Matrix4<f32> {
-        let scale = 1.0 / scale;
-        let position = self.position.to_f32() * scale;
+        let position = self.position.to_f32();
         let size = self.size.to_f32();
         let rotation = self.rotation.to_f32();
         let rotation = Vector::from([0.0, 0.0, rotation.radians]);
         let anchor = self.anchor.to_f32();
         let anchor = Point3::new(anchor.x, anchor.y, 0.0);
+
         Matrix4::new_translation(&Vector::from([
-            position.x + anchor.x,
-            position.y + anchor.y,
+            position.x - anchor.x,
+            position.y - anchor.y,
             self.z_index as f32,
         ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
+    }
+
+    /// Transform a sprite relative to another sprite
+    /// and produce vertex data.
+    pub fn transform(&self, sprite: &Sprite<T>) -> VertexData {
+        let vd = self.vertex_data();
+
+        let mut model = sprite.vertex_data().model;
+
+        let mut to_val = model.fixed_slice_mut::<2, 2>(0, 0);
+        let from_val = vd.model.fixed_slice::<2, 2>(0, 0);
+        to_val[0] /= from_val[0];
+        to_val[3] /= from_val[3];
+
+        eprintln!("model: {}", model);
+
+        VertexData {
+            model: vd.model * model,
+            ..vd
+        }
     }
 
     fn get_texture_position(&self) -> (f32, f32) {
@@ -152,12 +167,6 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
     /// Convert the sprite to vertex data.
     /// Works with the default renderer.
     pub fn vertex_data(&self) -> VertexData {
-        self.vertex_data_scaled(1.0)
-    }
-
-    /// Convert the sprite to vertex data.
-    /// Works with the default renderer.
-    pub fn vertex_data_scaled(&self, scale: f32) -> VertexData {
         let tile_count: (f32, f32) = match self.fill {
             FillMode::Repeat => {
                 let size = self.size.to_f32();
@@ -171,7 +180,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         };
 
         VertexData {
-            model: self.model_scaled(scale),
+            model: self.model(),
             texture_position: self.get_texture_position(),
             texture_size: self.get_texture_size(),
             tile_count,

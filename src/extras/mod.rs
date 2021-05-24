@@ -1,4 +1,5 @@
-// mod binary_tree;
+mod binarytree;
+mod entries;
 // mod quad_tree;
 
 // pub use binary_tree::Node as BinaryTreeNode;

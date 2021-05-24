@@ -128,6 +128,6 @@ impl Drop for Framebuffer {
     // framebuffer zero will be bound instead when
     // this buffer is deleted.
     fn drop(&mut self) {
-        unsafe { glDeleteFramebuffers(1, &mut self.id) }
+        unsafe { glDeleteFramebuffers(1, &self.id) }
     }
 }

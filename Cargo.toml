@@ -5,9 +5,10 @@ authors = ["Togglebit <me@togglebit.io>"]
 edition = "2018"
 
 [features]
-default = ["text", "eventloop"]
+default = ["text", "eventloop", "extras"]
 text = []
 eventloop = []
+extras = []
 
 [dependencies]
 bytemuck = { version = "1.5.1", features = ["derive"] }

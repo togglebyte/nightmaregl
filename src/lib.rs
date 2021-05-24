@@ -12,6 +12,7 @@ pub mod texture;
 
 #[cfg(feature = "eventloop")] pub mod events;
 #[cfg(feature = "text")] pub mod text;
+#[cfg(feature = "extras")] pub mod extras;
 
 pub use errors::Result;
 

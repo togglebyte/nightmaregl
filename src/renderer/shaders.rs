@@ -11,9 +11,9 @@ use crate::errors::NightmareError;
 // -----------------------------------------------------------------------------
 //     - Default shaders -
 // -----------------------------------------------------------------------------
-const DEFAULT_VERTEX: &'static [u8] = include_bytes!("../default.vert");
-const DEFAULT_FRAGMENT: &'static [u8] = include_bytes!("../default.frag");
-const DEFAULT_FONT: &'static [u8] = include_bytes!("../font.frag");
+const DEFAULT_VERTEX: &[u8] = include_bytes!("../default.vert");
+const DEFAULT_FRAGMENT: &[u8] = include_bytes!("../default.frag");
+const DEFAULT_FONT: &[u8] = include_bytes!("../font.frag");
 
 // -----------------------------------------------------------------------------
 //     - Shader types -

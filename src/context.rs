@@ -23,7 +23,7 @@ impl Vao {
 
 impl Drop for Vao {
     fn drop(&mut self) {
-        unsafe { glDeleteVertexArrays(1, &mut self.0) };
+        unsafe { glDeleteVertexArrays(1, &self.0) };
     }
 }
 

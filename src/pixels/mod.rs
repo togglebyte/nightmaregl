@@ -54,7 +54,7 @@ impl<T: Pod> Pixels<T> {
         debug_assert!(inner.len() == size.width * size.height);
 
         Self { 
-           inner: inner.into(),
+           inner,
            size,
         }
     }
