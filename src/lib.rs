@@ -1,10 +1,11 @@
 mod animation;
 mod color;
 mod context;
-pub mod errors;
 mod sprite;
 mod viewport;
+mod transform;
 
+pub mod errors;
 pub mod framebuffer;
 pub mod pixels;
 pub mod renderer;
@@ -19,10 +20,11 @@ pub use errors::Result;
 pub use animation::Animation;
 pub use color::Color;
 pub use context::Context;
-pub use renderer::Renderer;
-pub use sprite::{FillMode, Sprite, VertexData};
+pub use renderer::{default::Renderer, default::VertexData};
+pub use sprite::{FillMode, Sprite};
 pub use texture::Texture;
 pub use viewport::{RelativeViewport, Viewport};
+pub use transform::Transform;
 
 // -----------------------------------------------------------------------------
 //     - Vertex -

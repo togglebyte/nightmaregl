@@ -10,9 +10,9 @@ use rusttype::{Font as RustTypeFont, Point, PositionedGlyph, Scale, GlyphId};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::errors::{NightmareError, Result};
-use crate::sprite::VertexData;
+use crate::renderer::default::VertexData;
 use crate::texture::Texture;
-use crate::{Context, Position, Size, Sprite};
+use crate::{Context, Position, Size, Sprite, Transform};
 
 // -----------------------------------------------------------------------------
 //     - Word wrapping -
@@ -56,7 +56,7 @@ pub struct Text {
     font: Arc<Font>,
     wrap: WordWrap,
     cache: FontCache,
-    sprites: Vec<Sprite<f32>>,
+    sprites: Vec<(Sprite<f32>, Transform<f32>)>,
     position: Position<f32>,
     caret: Point<f32>,
     previous_glyph_id: Option<GlyphId>
@@ -101,8 +101,8 @@ impl Text {
     /// Set the position of the font.
     pub fn position(&mut self, position: Position<f32>) {
         self.position = position;
-        self.sprites.iter_mut().for_each(|sprite| {
-            sprite.position += position;
+        self.sprites.iter_mut().for_each(|(_, transform)| {
+            transform.translate_mut(position);
         });
     }
 
@@ -113,7 +113,7 @@ impl Text {
 
     /// Vertex data used to position the font
     pub fn vertex_data(&self) -> Vec<VertexData> {
-        self.sprites.iter().map(Sprite::vertex_data).collect()
+        self.sprites.iter().map(|(s, t)| VertexData::new(s, t)).collect()
     }
 
     /// Current caret
@@ -156,6 +156,7 @@ impl Text {
             .flatten()
             .map(|(uv, vert)| {
                 let mut sprite = Sprite::new(&self.cache.texture);
+                let mut transform = Transform::new();
                 let scale = self.cache.size.width;
                 let tex_offset = crate::Point::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
                 let size = Size::new(uv.width(), uv.height());
@@ -164,9 +165,11 @@ impl Text {
                 sprite.texture_rect.origin = tex_offset;
                 sprite.texture_rect.size = size.cast() * scale;
                 sprite.size = size;
-                sprite.position = pos.cast();
-                sprite.size *= scale;
-                sprite
+
+                transform.translate_mut(pos.cast());
+                transform.scale = Size::new(scale, scale);
+
+                (sprite, transform)
             })
             .collect::<Vec<_>>();
 

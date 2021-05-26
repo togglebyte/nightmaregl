@@ -1,6 +1,9 @@
-use nightmaregl::events::{Event, Key, LoopAction, EventLoop};
-use nightmaregl::{Size, Color, Context, Position, Result, Sprite, Renderer, Viewport, Rotation};
+use nightmaregl::events::{Event, EventLoop, Key, LoopAction};
 use nightmaregl::texture::Texture;
+use nightmaregl::{
+    Color, Context, Position, Renderer, Result, 
+    Rotation, Size, Sprite, Transform, Viewport, VertexData
+};
 
 fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
@@ -26,13 +29,16 @@ fn main() -> Result<()> {
     //     - Create a sprite -
     //     * Create a sprite from a texture.
     //     * Position the sprite in the middle of the screen.
-    //     * Set the anchor in the middle of the sprite so it rotates 
+    //     * Set the anchor in the middle of the sprite so it rotates
     //       around the middle.
     // -----------------------------------------------------------------------------
     let texture = Texture::from_disk("examples/buny.png")?;
     let mut sprite = Sprite::new(&texture);
-    sprite.position = viewport.centre().to_f32() / renderer.pixel_size as f32;
+
     sprite.anchor = (sprite.size / 2.0).to_vector();
+
+    let mut transform = Transform::new();
+    // transform.translate(viewport.centre().to_f32() / renderer.pixel_size as f32);
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -47,19 +53,22 @@ fn main() -> Result<()> {
                 context.clear(Color::grey());
 
                 // Move the sprite a bit
-                sprite.position = viewport.centre().cast::<f32>() / renderer.pixel_size as f32;
-                sprite.position += Position::new(t.sin(), t.cos()) * 20.0;
-                sprite.position -= Position::new(sprite.size.width, sprite.size.height);
+                let mut new_pos = viewport.centre().cast::<f32>() / renderer.pixel_size as f32;
+                new_pos += Position::new(t.sin(), t.cos()) * 20.0;
+                new_pos -= Position::new(sprite.size.width, sprite.size.height);
+                let mut transform = transform.translate(Position::new(50.0, 50.0));
 
                 // ... and rotate it
-                sprite.rotation = Rotation::radians(t / 1.0);
+                let transform = transform.rotate(Rotation::radians(t / 1.0));
+
+                let vertex_data = VertexData::new(&sprite, &transform);
 
                 // Draw the sprite
                 let res = renderer.render(
-                	&texture,
-                	&vec![sprite.vertex_data()],
-                	&viewport,
-                	&mut context
+                    &texture,
+                    &[vertex_data],
+                    &viewport,
+                    &mut context,
                 );
 
                 if let Err(e) = res {
@@ -69,7 +78,9 @@ fn main() -> Result<()> {
                 context.swap_buffers();
             }
             Event::Resize(size) => viewport.resize(size),
-            Event::Key { key: Key::Escape, .. } => return LoopAction::Quit,
+            Event::Key {
+                key: Key::Escape, ..
+            } => return LoopAction::Quit,
             Event::Char('q') => return LoopAction::Quit,
             _ => {}
         }

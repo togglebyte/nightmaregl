@@ -6,24 +6,7 @@ use num_traits::cast::NumCast;
 use num_traits::Zero;
 
 use crate::texture::Texture;
-use crate::{Point, Position, Rect, Rotation, Size};
-
-/// Default vertex data
-#[derive(Debug, Clone, Copy)]
-#[repr(C)]
-pub struct VertexData {
-    /// The model matrix
-    pub model: Matrix4<f32>,
-
-    /// Texture position
-    pub texture_position: (f32, f32),
-
-    /// Texture size
-    pub texture_size: (f32, f32),
-
-    /// Tile count
-    pub tile_count: (f32, f32),
-}
+use crate::{Point, Position, Rect, Rotation, Size, VertexData};
 
 /// Tiling mode. Either stretch or tiling
 #[derive(Debug, Copy, Clone)]
@@ -37,9 +20,6 @@ pub enum FillMode {
     Repeat,
 }
 
-// -----------------------------------------------------------------------------
-//     - Sprite -
-// -----------------------------------------------------------------------------
 /// A sprite, positioned somehwere in world space.
 ///
 /// ```
@@ -57,16 +37,12 @@ pub enum FillMode {
 #[derive(Debug, Copy, Clone)]
 pub struct Sprite<T> {
     // The texture size of the sprite
-    texture_size: Size<T>,
+    pub(crate) texture_size: Size<T>,
     /// The size of the sprite
     pub size: Size<T>,
     /// A rectangle representing the area
     /// of a texture to render.
     pub texture_rect: Rect<T>,
-    /// The sprites position in the world
-    pub position: Position<T>,
-    /// The sprites current rotation
-    pub rotation: Rotation<T>,
     /// The anchor point of the sprite.
     /// To rotate a sprite around its centre set the anchor
     /// to be half the size of the sprite.
@@ -98,8 +74,6 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         Self {
             size: texture_size,
             texture_size,
-            position: Position::zero(),
-            rotation: Rotation::zero(),
             texture_rect: Rect::new(Point::zero(), texture_size.cast()),
             anchor: Position::zero(),
             z_index: 50,
@@ -107,44 +81,44 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         }
     }
 
-    /// Create a model matrix
-    pub fn model(&self) -> Matrix4<f32> {
-        let position = self.position.to_f32();
-        let size = self.size.to_f32();
-        let rotation = self.rotation.to_f32();
-        let rotation = Vector::from([0.0, 0.0, rotation.radians]);
-        let anchor = self.anchor.to_f32();
-        let anchor = Point3::new(anchor.x, anchor.y, 0.0);
+    // /// Create a model matrix
+    // pub fn model(&self) -> Matrix4<f32> {
+    //     let position = self.position.to_f32();
+    //     let size = self.size.to_f32();
+    //     let rotation = self.rotation.to_f32();
+    //     let rotation = Vector::from([0.0, 0.0, rotation.radians]);
+    //     let anchor = self.anchor.to_f32();
+    //     let anchor = Point3::new(anchor.x, anchor.y, 0.0);
 
-        Matrix4::new_translation(&Vector::from([
-            position.x - anchor.x,
-            position.y - anchor.y,
-            self.z_index as f32,
-        ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
-            * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
-    }
+    //     Matrix4::new_translation(&Vector::from([
+    //         position.x - anchor.x,
+    //         position.y - anchor.y,
+    //         self.z_index as f32,
+    //     ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
+    //         * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
+    // }
 
-    /// Transform a sprite relative to another sprite
-    /// and produce vertex data.
-    pub fn transform(&self, sprite: &Sprite<T>) -> VertexData {
-        let vd = self.vertex_data();
+//     /// Transform a sprite relative to another sprite
+//     /// and produce vertex data.
+//     pub fn transform(&self, sprite: &Sprite<T>) -> VertexData {
+//         let vd = self.vertex_data();
 
-        let mut model = sprite.vertex_data().model;
+//         let mut model = sprite.vertex_data().model;
 
-        let mut to_val = model.fixed_slice_mut::<2, 2>(0, 0);
-        let from_val = vd.model.fixed_slice::<2, 2>(0, 0);
-        to_val[0] /= from_val[0];
-        to_val[3] /= from_val[3];
+//         let mut to_val = model.fixed_slice_mut::<2, 2>(0, 0);
+//         let from_val = vd.model.fixed_slice::<2, 2>(0, 0);
+//         to_val[0] /= from_val[0];
+//         to_val[3] /= from_val[3];
 
-        eprintln!("model: {}", model);
+//         eprintln!("model: {}", model);
 
-        VertexData {
-            model: vd.model * model,
-            ..vd
-        }
-    }
+//         VertexData {
+//             model: vd.model * model,
+//             ..vd
+//         }
+//     }
 
-    fn get_texture_position(&self) -> (f32, f32) {
+    pub(crate) fn get_texture_position(&self) -> (f32, f32) {
         let total_tex_size = self.texture_size.to_f32();
         let origin = self.texture_rect.origin.to_f32();
 
@@ -154,7 +128,7 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         )
     }
 
-    fn get_texture_size(&self) -> (f32, f32) {
+    pub(crate) fn get_texture_size(&self) -> (f32, f32) {
         let tex_rect_size = self.texture_rect.size.to_f32();
         let total_tex_size = self.texture_size.to_f32();
 
@@ -164,26 +138,42 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         )
     }
 
-    /// Convert the sprite to vertex data.
-    /// Works with the default renderer.
-    pub fn vertex_data(&self) -> VertexData {
-        let tile_count: (f32, f32) = match self.fill {
-            FillMode::Repeat => {
-                let size = self.size.to_f32();
-                let total_texture_size = self.texture_size.to_f32();
-                let (texture_width, texture_height) = self.get_texture_size();
-                let x = size.width / texture_width / total_texture_size.width;
-                let y = size.height / texture_height / total_texture_size.height;
-                (x, y)
-            }
-            FillMode::Stretch => (1.0, 1.0),
-        };
+    // /// Convert the sprite to vertex data.
+    // /// Works with the default renderer.
+    // pub fn tile_count(&self) -> f32 {
+    //     match self.fill {
+    //         FillMode::Repeat => {
+    //             let size = self.size.to_f32();
+    //             let total_texture_size = self.texture_size.to_f32();
+    //             let (texture_width, texture_height) = self.get_texture_size();
+    //             let x = size.width / texture_width / total_texture_size.width;
+    //             let y = size.height / texture_height / total_texture_size.height;
+    //             (x, y)
+    //         }
+    //         FillMode::Stretch => (1.0, 1.0),
+    //     }
+    // }
 
-        VertexData {
-            model: self.model(),
-            texture_position: self.get_texture_position(),
-            texture_size: self.get_texture_size(),
-            tile_count,
-        }
-    }
+    // /// Convert the sprite to vertex data.
+    // /// Works with the default renderer.
+    // pub fn vertex_data(&self) -> VertexData {
+    //     let tile_count: (f32, f32) = match self.fill {
+    //         FillMode::Repeat => {
+    //             let size = self.size.to_f32();
+    //             let total_texture_size = self.texture_size.to_f32();
+    //             let (texture_width, texture_height) = self.get_texture_size();
+    //             let x = size.width / texture_width / total_texture_size.width;
+    //             let y = size.height / texture_height / total_texture_size.height;
+    //             (x, y)
+    //         }
+    //         FillMode::Stretch => (1.0, 1.0),
+    //     };
+
+    //     VertexData {
+    //         model: self.model(),
+    //         texture_position: self.get_texture_position(),
+    //         texture_size: self.get_texture_size(),
+    //         tile_count,
+    //     }
+    // }
 }

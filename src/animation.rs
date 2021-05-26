@@ -107,11 +107,6 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         self.current_frame
     }
 
-    /// Get the vertex data from the underlying sprite.
-    pub fn vertex_data(&self) -> VertexData {
-        self.sprite.vertex_data()
-    }
-
     fn next(&mut self) {
         if self.current_frame == self.max_frame - 1 {
             match self.repeat {

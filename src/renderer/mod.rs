@@ -1,15 +1,14 @@
 use std::marker::PhantomData;
 use std::mem::size_of;
 
-use gl33::global_loader::*;
-use gl33::*;
 use crate::context::{Context, Vao};
 use crate::Vertex;
+use gl33::global_loader::*;
+use gl33::*;
 
-mod renderer;
+pub mod default;
 mod shaders;
 
-pub use renderer::Renderer;
 pub use shaders::{FragmentShader, Shader, ShaderProgram, VertexShader};
 
 /// Vertex buffer object
@@ -86,21 +85,6 @@ pub fn new_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
     VertexPointers::<T>::new(vao)
 }
 
-/// Default vertex pointers for [`crate::VertexData`].
-/// To use different vertex data with a different layout create new `VertexPointers` with 
-/// a different layout.
-pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
-    new_vertex_pointers(context)
-        .with_divisor(1)
-        .add(3, 4, GlType::Float, false)
-        .add(4, 4, GlType::Float, false)
-        .add(5, 4, GlType::Float, false)
-        .add(6, 4, GlType::Float, false)
-        .add(10, 2, GlType::Float, false)
-        .add(11, 2, GlType::Float, false)
-        .add(12, 2, GlType::Float, false)
-}
-
 /// OpenGL data type
 pub enum GlType {
     /// GL_FLOAT
@@ -173,11 +157,12 @@ impl<T> VertexPointers<T> {
             unsafe { glVertexAttribDivisor(position, divisor) }
         }
 
-        self.next_offset += param_count as u32
-            * match gl_type {
-                GlType::Float => size_of::<f32>() as u32,
-                GlType::Int => size_of::<u32>() as u32,
-            };
+        let size = match gl_type {
+            GlType::Float => size_of::<f32>() as u32,
+            GlType::Int => size_of::<u32>() as u32,
+        };
+
+        self.next_offset += param_count as u32 * size;
 
         self
     }
