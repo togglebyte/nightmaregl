@@ -40,7 +40,7 @@ impl<T: Zero + One + Copy + AddAssign> Transform<T> {
     }
 
     pub fn rotate_mut(&mut self, rot: Rotation<T>) {
-        self.rotation += rot;
+        self.rotation = rot;
     }
 
     pub fn translate(&self, other: Transform<T>) -> Transform<T> {
@@ -51,7 +51,7 @@ impl<T: Zero + One + Copy + AddAssign> Transform<T> {
     }
 
     pub fn translate_mut(&mut self, translation: Position<T>) {
-        self.translation += translation;
+        self.translation = translation;
     }
 
 }

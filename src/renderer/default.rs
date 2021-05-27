@@ -96,11 +96,12 @@ pub fn default_vertex_pointers<T>(context: &mut Context) -> VertexPointers<T> {
 ///
 /// ```
 /// # use nightmaregl::*;
-/// # fn run(mut context: Context, viewport: Viewport, sprites: Vec<Sprite<f32>>, texture: Texture<f32>) {
+/// # fn run(mut context: Context, viewport: Viewport, sprites: Vec<Sprite<f32>>, transforms: Vec<Transform<f32>>, texture: Texture<f32>) {
 /// let renderer = Renderer::default(&mut context).unwrap();
 /// let vertex_data = sprites
 ///     .iter()
-///     .map(Sprite::vertex_data)
+///     .zip(transforms.iter())
+///     .map(|(s, t)| VertexData::new(s, t))
 ///     .collect::<Vec<_>>();
 /// renderer.render(&texture, &vertex_data, &viewport, &mut context);
 /// # }

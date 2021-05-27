@@ -38,7 +38,7 @@ fn main() -> Result<()> {
     sprite.anchor = (sprite.size / 2.0).to_vector();
 
     let mut transform = Transform::new();
-    // transform.translate(viewport.centre().to_f32() / renderer.pixel_size as f32);
+    transform.translate_mut(viewport.centre().to_f32() / renderer.pixel_size as f32);
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -56,10 +56,11 @@ fn main() -> Result<()> {
                 let mut new_pos = viewport.centre().cast::<f32>() / renderer.pixel_size as f32;
                 new_pos += Position::new(t.sin(), t.cos()) * 20.0;
                 new_pos -= Position::new(sprite.size.width, sprite.size.height);
-                let mut transform = transform.translate(Position::new(50.0, 50.0));
+                transform.translate_mut(new_pos);
+                // transform.translate_mut(Position::new(50.0, 50.0));
 
                 // ... and rotate it
-                let transform = transform.rotate(Rotation::radians(t / 1.0));
+                transform.rotate_mut(Rotation::radians(t / 1.0));
 
                 let vertex_data = VertexData::new(&sprite, &transform);
 

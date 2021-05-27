@@ -24,14 +24,15 @@ pub enum FillMode {
 ///
 /// ```
 /// # use nightmaregl::Texture;
-/// use nightmaregl::{Rect, Sprite, Point, Size};
+/// use nightmaregl::{Rect, Sprite, Point, Position, Size, Transform, VertexData};
 ///
 /// # fn run(texture: Texture<i32>) {
 /// let mut sprite = Sprite::new(&texture);
 /// // Sprite is "looking" at 32x32 pixels with an offset of zero
 /// sprite.texture_rect = Rect::new(Point::zero(), Size::new(32, 32));
-/// sprite.position.x = 10;
-/// let vertex_data = sprite.vertex_data();
+/// let mut transform = Transform::new();
+/// transform.translate_mut(Position::new(10, 10));
+/// let vertex_data = VertexData::new(&sprite, &transform);
 /// # }
 /// ```
 #[derive(Debug, Copy, Clone)]
