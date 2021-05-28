@@ -28,8 +28,14 @@ pub enum Event {
     /// Key modifiers (shift, ctrl etc.)
     Modifier(Modifiers),
 
-    /// Mouse input (not yet done)
-    MouseInput,
+    /// Mouse cursor position relative to the window.
+    /// This means 0,0 is top left of the window.
+    MouseMoved { 
+        /// X
+        x: f32, 
+        /// Y
+        y: f32 
+    },
 
     /// Redraw the screen. Do rendering here.
     Draw(f32),
@@ -89,6 +95,7 @@ impl EventLoop {
                     WindowEvent::KeyboardInput {
                         input: KeyboardInput { virtual_keycode: Some(keycode), state, ..  }, ..
                     } => event_handler(Event::Key { key: keycode, state }),
+                    WindowEvent::CursorMoved { position, .. } => event_handler(Event::MouseMoved { x: position.x as f32, y: position.y as f32 }),
                     WindowEvent::Resized(new_size) => event_handler(Event::Resize(Size::new(new_size.width, new_size.height))),
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;
