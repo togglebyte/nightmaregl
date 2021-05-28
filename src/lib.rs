@@ -23,7 +23,7 @@ pub use context::Context;
 pub use renderer::{default::Renderer, default::VertexData};
 pub use sprite::{FillMode, Sprite};
 pub use texture::Texture;
-pub use viewport::{RelativeViewport, Viewport};
+pub use viewport::Viewport;
 pub use transform::Transform;
 
 // -----------------------------------------------------------------------------
