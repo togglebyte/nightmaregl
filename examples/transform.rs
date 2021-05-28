@@ -36,14 +36,14 @@ fn main() -> Result<()> {
     let mut buny_sprite = Sprite::new(&buny);
 
     // Set the anchor point / pivot point to the centre of the sprite
-    // buny_sprite.anchor = (buny_sprite.size / 2.0).to_vector();
+    buny_sprite.anchor = (buny_sprite.size / 2.0).to_vector();
+
     let mut buny_transform = Transform::default();
 
     // Create a position that is the centre of the screen.
     // Because the pixel size is 8, the position has to be divided by 8.
     let buny_pos = (viewport.size().cast() / 2.0f32 / renderer.pixel_size as f32).to_vector();
 
-    let buny_pos = Position::new(100.0, 100.0);
     // Translate the transform to the new position.
     buny_transform.translate_mut(buny_pos);
 
