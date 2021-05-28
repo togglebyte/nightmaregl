@@ -1,17 +1,20 @@
+#![deny(missing_docs)]
+//! Default renderer.
+//! Also contains [`VertexData`].
 use std::ffi::CStr;
 use std::ops::{Div, MulAssign};
 
-use nalgebra::{Point3, Vector, Matrix4, Scalar};
 use gl33::global_loader::*;
 use gl33::*;
+use nalgebra::{Matrix4, Point3, Scalar, Vector};
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
 use super::shaders::ShaderProgram;
 use super::{GlType, Vbo, Vertex, VertexPointers, QUAD};
 use crate::context::{Context, Vao};
-use crate::{Result, Viewport, Texture, Transform};
-use crate::sprite::{Sprite, FillMode};
+use crate::sprite::{FillMode, Sprite};
+use crate::{Result, Texture, Transform, Viewport};
 
 /// Default vertex data
 #[derive(Debug, Clone, Copy)]
@@ -31,7 +34,11 @@ pub struct VertexData {
 }
 
 impl VertexData {
-    pub fn new<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>>(sprite: &Sprite<T>, transform: &Transform<T>) -> Self {
+    /// Create a new set of vertex data by combining the sprite and the transform.
+    pub fn new<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>>(
+        sprite: &Sprite<T>,
+        transform: &Transform<T>,
+    ) -> Self {
         let tile_count: (f32, f32) = match sprite.fill {
             FillMode::Repeat => {
                 let size = sprite.size.to_f32();
@@ -45,18 +52,50 @@ impl VertexData {
         };
 
         VertexData {
-            model: Self::model(sprite, &transform),
+            model: Self::create_model(sprite, &transform),
             texture_position: sprite.get_texture_position(),
             texture_size: sprite.get_texture_size(),
             tile_count,
         }
     }
 
-    fn model<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>>(sprite: &Sprite<T>, transform: &Transform<T>) -> Matrix4<f32> {
+    /// Make the vertex data relative to another transformation.
+    /// This is useful when working in local space:
+    ///
+    /// ```
+    /// use nightmaregl::{Sprite, Transform, Position, VertexData, Size};
+    /// // Parent
+    /// let parent_sprite = Sprite::<f32>::from_size(Size::new(32.0, 32.0));
+    /// let mut parent_transform = Transform::default();
+    /// parent_transform.translate_mut(Position::new(100.0, 100.0));
+    ///
+    /// let child_sprite = Sprite::<f32>::from_size(Size::new(32.0, 32.0));
+    /// let mut child_transform = Transform::default();
+    /// // Place the child 64 pixels to the right
+    /// child_transform.translate_mut(Position::new(0.0, 0.0));
+    /// let mut vertex_data = VertexData::new(&child_sprite, &child_transform);
+    ///
+    /// // Make the child relative to the parent.
+    /// // By doing so, the child_sprite is placed 64 pixels to the 
+    /// // right of the parent
+    /// vertex_data.make_relative(&parent_transform);
+    /// let pos = vertex_data.model.column(3);
+    /// assert_eq!(pos[0], 100.0);
+    /// assert_eq!(pos[1], 100.0);
+    /// ```
+    pub fn make_relative(&mut self, relative_to: &Transform<f32>) {
+        let parent = relative_to.matrix();
+        self.model = parent * self.model;
+    }
+
+    fn create_model<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>>(
+        sprite: &Sprite<T>,
+        transform: &Transform<T>,
+    ) -> Matrix4<f32> {
         let position = transform.translation.to_f32();
         let rotation = transform.rotation.to_f32();
         let rotation = Vector::from([0.0, 0.0, rotation.radians]);
-    
+
         let size = sprite.size.to_f32();
         let anchor = sprite.anchor.to_f32();
         let anchor = Point3::new(anchor.x, anchor.y, 0.0);
@@ -70,11 +109,10 @@ impl VertexData {
         ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([
                 size.width * scale.x,
-                size.height * scale.y, 
-                1.0
+                size.height * scale.y,
+                1.0,
             ]))
     }
-
 }
 
 /// Default vertex pointers for [`crate::VertexData`].
@@ -111,16 +149,19 @@ pub struct Renderer<T> {
     vbo: Vbo<T>,
     _quad_vbo: Vbo<Vertex>,
     shader_program: ShaderProgram,
+    /// Multiplier for the size of a pixel.
     pub pixel_size: i32,
 }
 
 impl<T: std::fmt::Debug> Renderer<T> {
+    /// Create a default renderer using the default shaders
     pub fn default(context: &mut Context) -> Result<Self> {
         let vertex_pointers = default_vertex_pointers(context);
         let shader_program = ShaderProgram::default();
         Self::new(vertex_pointers, shader_program?)
     }
 
+    /// Create a default font renderer, using the font shaders
     pub fn default_font(context: &mut Context) -> Result<Self> {
         let vertex_pointers = default_vertex_pointers(context);
         let shader_program = ShaderProgram::default_font();
@@ -129,12 +170,9 @@ impl<T: std::fmt::Debug> Renderer<T> {
 
     /// Create a new renderer.
     /// A renderer needs both a vertex shader and a fragment shader.
-    pub fn new(
-        vertex_pointers: VertexPointers<T>,
-        shader_program: ShaderProgram,
-    ) -> Result<Self> {
+    pub fn new(vertex_pointers: VertexPointers<T>, shader_program: ShaderProgram) -> Result<Self> {
         let (vao, vbo) = vertex_pointers.build();
-        
+
         let (vao, quad_vbo) = VertexPointers::new(vao)
             .add(0, 3, GlType::Float, false)
             .add(1, 2, GlType::Float, false)
@@ -191,14 +229,11 @@ impl<T: std::fmt::Debug> Renderer<T> {
         self.shader_program
             .set_uniform_matrix(clip, clip_uniform_name)?;
 
-        let pixel_scale_uniform_name = CStr::from_bytes_with_nul(b"pixel_scale\0")
-            .expect("invalid c string");
+        let pixel_scale_uniform_name =
+            CStr::from_bytes_with_nul(b"pixel_scale\0").expect("invalid c string");
 
         self.shader_program
-            .set_uniform_float(
-                self.pixel_size as f32,
-                pixel_scale_uniform_name
-            )?;
+            .set_uniform_float(self.pixel_size as f32, pixel_scale_uniform_name)?;
 
         unsafe {
             glDrawArraysInstanced(
