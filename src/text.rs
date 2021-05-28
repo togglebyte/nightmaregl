@@ -12,7 +12,7 @@ use unicode_segmentation::UnicodeSegmentation;
 use crate::errors::{NightmareError, Result};
 use crate::renderer::default::VertexData;
 use crate::texture::Texture;
-use crate::{Context, Position, Size, Sprite, Transform};
+use crate::{Context, Position, Size, Vector, Sprite, Transform};
 
 // -----------------------------------------------------------------------------
 //     - Word wrapping -
@@ -167,7 +167,7 @@ impl Text {
                 sprite.size = size;
 
                 transform.translate_mut(pos.cast());
-                transform.scale = Size::new(scale, scale);
+                transform.scale = Vector::new(scale, scale);
 
                 (sprite, transform)
             })

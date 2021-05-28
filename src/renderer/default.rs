@@ -69,8 +69,8 @@ impl VertexData {
             sprite.z_index as f32,
         ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
             * Matrix4::new_nonuniform_scaling(&Vector::from([
-                size.width * scale.width,
-                size.height * scale.height, 
+                size.width * scale.x,
+                size.height * scale.y, 
                 1.0
             ]))
     }

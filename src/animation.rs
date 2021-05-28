@@ -7,7 +7,7 @@ use num_traits::Zero;
 
 use crate::sprite::Sprite;
 use crate::texture::Texture;
-use crate::{Point, Rect, Size, VertexData};
+use crate::{Point, Rect, Size};
 
 /// Represent a sprite as an animation.
 ///

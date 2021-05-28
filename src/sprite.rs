@@ -1,12 +1,12 @@
 #![deny(missing_docs)]
 use std::ops::{Div, MulAssign};
 
-use nalgebra::{Matrix4, Point3, Scalar, Vector};
+use nalgebra::Scalar;
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
 use crate::texture::Texture;
-use crate::{Point, Position, Rect, Rotation, Size, VertexData};
+use crate::{Point, Position, Rect, Size};
 
 /// Tiling mode. Either stretch or tiling
 #[derive(Debug, Copy, Clone)]
