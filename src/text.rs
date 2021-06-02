@@ -106,6 +106,13 @@ impl Text {
         });
     }
 
+    /// Set the z index for the text sprites
+    pub fn z_index(&mut self, z_index: i32) {
+        self.sprites.iter_mut().for_each(|(sprite, _)| {
+            sprite.z_index = z_index;
+        });
+    }
+
     /// The texture for the font
     pub fn texture(&self) -> &Texture<f32> { 
         &self.cache.texture
