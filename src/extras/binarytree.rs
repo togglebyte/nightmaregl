@@ -35,17 +35,27 @@ impl Node {
         }
     }
 
-    // TODO
     pub fn remove(&mut self, node_id: usize) {
-        match self {
-            Node::Branch { left, right } => {
-                // match left.as_ref() {
-                //     Node::Leaf(id) if *id == node_id => {
-                //     }
-                //     _ => {}
-                // }
-            }
-            _ => {}
-        }
     }
+
+    // fn find_parent(&mut self, node_id: usize) -> Option<&mut Node> {
+    //     match self {
+    //         Node::Leaf(id) => return None,
+    //         Node::Branch { left, right } => {
+    //             match left.as_mut() {
+    //                 Node::Leaf(id) if *id == node_id => return Some(&mut self),
+    //                 _ => match right.as_ref() {
+    //                     Node::Leaf(id) if *id == node_id => return Some(&mut self),
+    //                     _ => {
+    //                         match left.find_parent(node_id) {
+    //                             Some(p) => Some(p),
+    //                             None => right.find_parent(node_id)
+    //                         }
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //     }
+    // }
+
 }

@@ -37,7 +37,7 @@ fn main() -> Result<()> {
 
     sprite.anchor = (sprite.size / 2.0).to_vector();
 
-    let mut transform = Transform::new();
+    let mut transform = Transform::default();
     transform.translate_mut(viewport.centre().to_f32() / renderer.pixel_size as f32);
 
     // -----------------------------------------------------------------------------

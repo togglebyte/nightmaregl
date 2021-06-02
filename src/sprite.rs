@@ -30,8 +30,7 @@ pub enum FillMode {
 /// let mut sprite = Sprite::new(&texture);
 /// // Sprite is "looking" at 32x32 pixels with an offset of zero
 /// sprite.texture_rect = Rect::new(Point::zero(), Size::new(32, 32));
-/// let mut transform = Transform::new();
-/// transform.translate_mut(Position::new(10, 10));
+/// let transform = Transform::new(Position::new(10, 10));
 /// let vertex_data = VertexData::new(&sprite, &transform);
 /// # }
 /// ```

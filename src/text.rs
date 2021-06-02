@@ -156,7 +156,7 @@ impl Text {
             .flatten()
             .map(|(uv, vert)| {
                 let mut sprite = Sprite::new(&self.cache.texture);
-                let mut transform = Transform::new();
+                let mut transform = Transform::default();
                 let scale = self.cache.size.width;
                 let tex_offset = crate::Point::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
                 let size = Size::new(uv.width(), uv.height());

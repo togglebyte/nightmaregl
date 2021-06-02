@@ -23,9 +23,9 @@ impl<T: Copy + NumCast + Zero + One + MulAssign + Default + Scalar + Div<Output 
 }
 
 impl<T: Copy + NumCast + Zero + One + MulAssign + Default + Scalar + Div<Output = T>> Transform<T> {
-    pub fn new() -> Self {
+    pub fn new(translation: Position<T>) -> Self {
         Self {
-            translation: Position::zero(),
+            translation,
             scale: Vector::new(T::one(), T::one()),
             rotation: Rotation::zero(),
         }
