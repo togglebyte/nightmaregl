@@ -1,6 +1,7 @@
-mod binarytree;
+#![deny(missing_docs)]
+//! Extras
+//!
+//! Entries is a slab that doesn't shrink.
 mod entries;
-// mod quad_tree;
 
-// pub use binary_tree::Node as BinaryTreeNode;
-// pub use quad_tree::Node as QuadTreeNode;
+pub use entries::{Entries, Entry};
