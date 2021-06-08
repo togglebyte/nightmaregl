@@ -89,3 +89,12 @@ impl<T> std::ops::Index<usize> for Entries<T> {
         }
     }
 }
+
+impl<T> std::ops::IndexMut<usize> for Entries<T> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        match self.inner.index_mut(index) {
+            Entry::Occupied(val) => val,
+            Entry::Vacant(_) => panic!("No value here"),
+        }
+    }
+}

@@ -225,6 +225,7 @@ impl<T: std::fmt::Debug> Renderer<T> {
 
         // Clip
         let clip = viewport.projection * viewport.view;
+
         // TODO: cache this
         let clip_uniform_name = CStr::from_bytes_with_nul(b"vp\0").expect("invalid c string");
         self.shader_program
