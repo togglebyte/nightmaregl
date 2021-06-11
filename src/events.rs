@@ -10,6 +10,7 @@ use glutin::event_loop::{ControlFlow, EventLoop as WinitEventLoop};
 
 pub use glutin::event::{
     ElementState as ButtonState, ModifiersState as Modifiers, MouseButton, VirtualKeyCode as Key,
+    MouseScrollDelta
 };
 
 use crate::Size;
@@ -46,6 +47,14 @@ pub enum Event {
 
         /// Which mouse button 
         button: MouseButton,
+    },
+
+    /// Mouse wheel moved
+    MouseWheel { 
+        /// X
+        x: f32, 
+        /// Y
+        y: f32 
     },
 
     /// Redraw the screen. Do rendering here.
@@ -120,6 +129,13 @@ impl EventLoop {
                         x: position.x as f32,
                         y: position.y as f32,
                     }),
+                    WindowEvent::MouseWheel { delta, .. } => {
+                        let (x, y) = match delta {
+                            MouseScrollDelta::LineDelta(x, y) => (x, y),
+                            MouseScrollDelta::PixelDelta(pos) => (pos.x as f32, pos.y as f32),
+                        };
+                        event_handler(Event::MouseWheel { x, y })
+                    }
                     WindowEvent::MouseInput { state, button, .. } => {
                         event_handler(Event::MouseButton { state, button })
                     }

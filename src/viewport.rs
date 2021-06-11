@@ -13,7 +13,7 @@ use crate::{Position, Size};
 ///     Size::new(800, 600)
 /// );
 /// ```
-#[derive(Debug, Copy, Clone)]
+#[derive(Debug, Clone)]
 pub struct Viewport {
     /// The screen position of the viewport
     pub position: Position<i32>,
