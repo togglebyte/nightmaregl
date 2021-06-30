@@ -113,8 +113,8 @@ impl ContextBuilder {
         self
     }
 
-    pub fn from_builder(&self, win_builder: WindowBuilder) -> Result<(EventLoop<()>, Context)> {
-        let event_loop = EventLoop::<()>::new();
+    pub fn from_builder<T>(&self, win_builder: WindowBuilder) -> Result<(EventLoop<T>, Context)> {
+        let event_loop = EventLoop::<T>::with_user_event();
 
         // Set this to 3.3
         let context = GlutinContextBuilder::new()
@@ -156,7 +156,7 @@ impl ContextBuilder {
     }
 
     /// Finalise the context builder and produce a [`Context`]
-    pub fn build(&mut self) -> Result<(EventLoop<()>, Context)> {
+    pub fn build<T>(&mut self) -> Result<(EventLoop<T>, Context)> {
         let mut window_builder = WindowBuilder::new()
             .with_title(&self.title)
             .with_resizable(self.resizable)
@@ -190,7 +190,7 @@ impl ContextBuilder {
 /// let (event_loop, context) = Context::builder("window title")
 ///     .vsync(true)                 // true by default
 ///     .hardware_acceleration(true) // true by default
-///     .build()
+///     .build::<()>()
 ///     .unwrap();
 ///
 /// // Draw 

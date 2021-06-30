@@ -15,7 +15,7 @@ fn main() -> Result<()> {
         .with_size(Size::new(800, 600))
         .build()?;
 
-    let eventloop = EventLoop::new(el);
+    let eventloop = EventLoop::<()>::new(el);
 
     // -----------------------------------------------------------------------------
     //     - Renderer and Viewport -

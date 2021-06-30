@@ -10,13 +10,15 @@ use glutin::event_loop::{ControlFlow, EventLoop as WinitEventLoop};
 
 pub use glutin::event::{
     ElementState as ButtonState, ModifiersState as Modifiers, MouseButton, VirtualKeyCode as Key,
-    MouseScrollDelta
+    MouseScrollDelta, 
 };
+
+pub use glutin::event_loop::EventLoopProxy as EventProxy;
 
 use crate::Size;
 
 /// An event provided by the event loop.
-pub enum Event {
+pub enum Event<T> {
     /// Any kid of key input. `state` is either `Pressed` or `Released`
     Key {
         /// Current key
@@ -62,6 +64,9 @@ pub enum Event {
 
     /// Window was resized.
     Resize(Size<u32>),
+
+    /// Custom user event
+    UserEvent(T),
 }
 
 /// For every iteration of the loop return one
@@ -75,12 +80,17 @@ pub enum LoopAction {
 }
 
 /// The event loop. See the [`run`] function for an example.
-pub struct EventLoop(pub(crate) WinitEventLoop<()>);
+pub struct EventLoop<T: 'static>(pub(crate) WinitEventLoop<T>);
 
-impl EventLoop {
+impl<T> EventLoop<T> {
+    /// Create a proxy for passing custom user events
+    pub fn proxy(&self) -> EventProxy<T> {
+        self.0.create_proxy()
+    }
+
     /// Create a new instance of an event loop,
     /// consuming the underlying Glutin (winit) event loop.
-    pub fn new(el: WinitEventLoop<()>) -> Self {
+    pub fn new(el: WinitEventLoop<T>) -> Self {
         Self(el)
     }
 
@@ -89,7 +99,7 @@ impl EventLoop {
     ///
     /// ```
     /// use nightmaregl::events::{LoopAction, EventLoop, Event};
-    /// # fn run(loopy: EventLoop) {
+    /// # fn run(loopy: EventLoop<()>) {
     /// loopy.run(|event| {
     ///     match event {
     ///         Event::Char('q') => return LoopAction::Quit,
@@ -102,12 +112,13 @@ impl EventLoop {
     /// ```
     pub fn run<F>(self, mut event_handler: F) -> !
     where
-        F: 'static + FnMut(Event) -> LoopAction,
+        F: 'static + FnMut(Event<T>) -> LoopAction,
     {
         let mut time = Instant::now();
 
         self.0.run(move |event, _window_id, control_flow| {
             let loop_action = match event {
+                WinitEvent::UserEvent(e) => event_handler(Event::UserEvent(e)),
                 WinitEvent::WindowEvent { event, .. } => match event {
                     WindowEvent::ReceivedCharacter(c) => event_handler(Event::Char(c)),
                     WindowEvent::ModifiersChanged(modifiers) => {
@@ -164,8 +175,8 @@ impl EventLoop {
     }
 }
 
-impl From<WinitEventLoop<()>> for EventLoop {
-    fn from(el: WinitEventLoop<()>) -> Self {
+impl<T> From<WinitEventLoop<T>> for EventLoop<T> {
+    fn from(el: WinitEventLoop<T>) -> Self {
         Self(el)
     }
 }

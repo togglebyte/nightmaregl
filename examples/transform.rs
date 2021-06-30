@@ -12,7 +12,7 @@ fn main() -> Result<()> {
     //     - Event loop -
     // -----------------------------------------------------------------------------
     let (el, mut context) = Context::builder("Best game ever!").build()?;
-    let eventloop = EventLoop::new(el);
+    let eventloop = EventLoop::<()>::new(el);
 
     // -----------------------------------------------------------------------------
     //     - Viewport and renderer setup -
