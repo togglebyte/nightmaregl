@@ -98,7 +98,8 @@ impl VertexData {
 
         let size = sprite.size.to_f32();
         let anchor = sprite.anchor.to_f32();
-        let anchor = Point3::new(anchor.x, anchor.y, 0.0);
+        let scale = transform.scale.to_f32();
+        let anchor = Point3::new(anchor.x * scale.x, anchor.y * scale.y, 0.0);
 
         let scale = transform.scale.to_f32();
 

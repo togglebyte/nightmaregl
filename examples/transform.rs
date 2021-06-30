@@ -3,7 +3,7 @@ use std::time::Instant;
 use nightmaregl::events::{Event, EventLoop, LoopAction};
 use nightmaregl::texture::Texture;
 use nightmaregl::{
-    Color, Context, Position, Renderer, Result,
+    Color, Context, Position, Renderer, Result, Vector,
     Rotation, Sprite, VertexData, Viewport, Transform
 };
 
@@ -23,8 +23,7 @@ fn main() -> Result<()> {
     let window_size = context.window_size();
     let viewport = Viewport::new(Position::zero(), window_size);
 
-    let mut renderer = Renderer::default(&mut context)?;
-    renderer.pixel_size = 8;
+    let renderer = Renderer::default(&mut context)?;
 
     // -----------------------------------------------------------------------------
     //     - First sprite, texture and transform -
@@ -39,6 +38,7 @@ fn main() -> Result<()> {
     buny_sprite.anchor = (buny_sprite.size / 2.0).to_vector();
 
     let mut buny_transform = Transform::default();
+    buny_transform.scale_mut(Vector::new(8.0, 8.0));
 
     // Create a position that is the centre of the screen.
     // Because the pixel size is 8, the position has to be divided by 8.
@@ -53,13 +53,14 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let arrow_texture = Texture::from_disk("examples/transform.png")?;
     let mut arrow = Sprite::new(&arrow_texture);
-    arrow.anchor = (arrow.size / 2.0).to_vector();
+    arrow.z_index = 1;
+    // arrow.anchor = (arrow.size / 2.0).to_vector();
     let mut arrow_transform = Transform::default();
 
     // Place this to the right of the buny sprite.
-    // Since this is goign to be rendered relative to the other
-    // sprite, it's not necessary to position this yet.
-    arrow_transform.translate_mut(Position::new(42.0, 0.0));
+    // Note that the values for the position reflects the original
+    // size and anchor point of the buny sprite.
+    arrow_transform.translate_mut(Position::new(14.0, -14.0));
 
     let now = Instant::now();
 
