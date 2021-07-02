@@ -135,7 +135,7 @@ impl<T: Pod> Pixels<T> {
     }
 
     /// Insert a pixel at a given location.
-    pub fn insert_pixel(&mut self, pixel: T, pos: Position<usize>) {
+    pub fn insert_pixel(&mut self, pos: Position<usize>, pixel: T) {
         debug_assert!(pos.x <= self.size.width);
         debug_assert!(pos.y <= self.size.height);
         let index = pos.y * self.size.width + pos.x;

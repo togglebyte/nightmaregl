@@ -355,8 +355,7 @@ impl<T: Copy + NumCast> Texture<T> {
         self.bind();
 
         debug_assert!(
-            data.len()
-                <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size()
+            data.len() <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size()
         );
 
         if let Format::Red = self.format {

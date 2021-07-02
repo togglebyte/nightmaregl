@@ -99,6 +99,7 @@ impl Text {
     }
 
     /// Set the position of the font.
+    // TODO: investigate: should position be Position<T> instead?
     pub fn position(&mut self, position: Position<f32>) {
         self.position = position;
         self.sprites.iter_mut().for_each(|(_, transform)| {

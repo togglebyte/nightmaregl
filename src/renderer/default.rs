@@ -8,7 +8,7 @@ use gl33::global_loader::*;
 use gl33::*;
 use nalgebra::{Matrix4, Point3, Scalar, Vector};
 use num_traits::cast::NumCast;
-use num_traits::Zero;
+use num_traits::{One, Zero};
 
 use super::shaders::ShaderProgram;
 use super::{GlType, Vbo, Vertex, VertexPointers, QUAD};
@@ -83,7 +83,7 @@ impl VertexData {
     /// assert_eq!(pos[0], 100.0);
     /// assert_eq!(pos[1], 100.0);
     /// ```
-    pub fn make_relative(&mut self, relative_to: &Transform<f32>) {
+    pub fn make_relative<T: Copy + NumCast + Zero + One + MulAssign + Default + Scalar + Div<Output = T>>(&mut self, relative_to: &Transform<T>) {
         let parent = relative_to.matrix();
         self.model = parent * self.model;
     }
