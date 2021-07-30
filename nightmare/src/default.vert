@@ -3,12 +3,13 @@
 layout (location = 0) in vec3 position;
 layout (location = 1) in vec2 uv_coords;
 
-layout (location = 3) in mat4 transform;
+// layout (location = 3) in mat4 transform;
 layout (location = 10) in vec2 _tex_pos;
 layout (location = 11) in vec2 _tex_size;
 layout (location = 12) in vec2 _tile_count;
 
 uniform mat4 vp;
+uniform mat4 transform[100];
 uniform sampler2D tex;
 uniform float pixel_scale;
 
@@ -22,7 +23,7 @@ void main() {
     scaling_matrix[0][0] = pixel_scale;
     scaling_matrix[1][1] = pixel_scale;
 
-    gl_Position = vp * scaling_matrix * transform * vec4(position, 1.0);
+    gl_Position = vp * scaling_matrix * transform[gl_InstanceID] * vec4(position, 1.0);
 
     // Off to the fragment shader you go
     tex_pos = _tex_pos;

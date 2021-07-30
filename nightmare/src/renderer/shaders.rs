@@ -112,11 +112,11 @@ impl ShaderProgram {
         glDeleteShader(shader_id);
     }
 
-    pub(crate) fn enable(&self) {
+    pub fn enable(&self) {
         glUseProgram(self.0);
     }
 
-    fn get_uniform_location(&self, name: &CStr) -> Result<i32> {
+    pub fn get_uniform_location(&self, name: &CStr) -> Result<i32> {
         let uniform_loc = unsafe { glGetUniformLocation(self.0, name.as_ptr().cast()) };
         if uniform_loc == -1 {
             return Err(NightmareError::ShaderProgram(format!(
@@ -128,32 +128,31 @@ impl ShaderProgram {
         Ok(uniform_loc)
     }
 
-    pub(crate) fn set_uniform_matrix(&self, matrix: Matrix4<f32>, name: &CStr) -> Result<()> {
-        let uniform_loc = self.get_uniform_location(name)?;
+    pub fn set_uniform_matrix_array(&self, matrix: &[Matrix4<f32>], loc: i32) {
         let transpose = false as u8;
-        unsafe { glUniformMatrix4fv(uniform_loc, 1, transpose, matrix.as_ptr()) };
-
-        Ok(())
+        unsafe { glUniformMatrix4fv(loc, matrix.len() as i32, transpose, matrix.as_ptr().cast()) };
     }
 
-    pub(crate) fn set_uniform_float(&self, f: f32, name: &CStr) -> Result<()> {
-        let uniform_loc = self.get_uniform_location(name)?;
-        unsafe { glUniform1f(uniform_loc, f) };
-
-        Ok(())
+    pub fn set_uniform_matrix(&self, matrix: Matrix4<f32>, loc: i32) {
+        let transpose = false as u8;
+        unsafe { glUniformMatrix4fv(loc, 1, transpose, matrix.as_ptr()) };
     }
 
-    pub fn default() -> Result<Self> {
-        let vertex_shader = Shader::default_vertex()?;
-        let fragment_shader = Shader::default_fragment()?;
-        Self::new(vertex_shader, fragment_shader)
+    pub fn set_uniform_float(&self, f: f32, loc: i32) {
+        unsafe { glUniform1f(loc, f) };
     }
 
-    pub fn default_font() -> Result<Self> {
-        let vertex_shader = Shader::default_vertex()?;
-        let fragment_shader = Shader::default_font()?;
-        Self::new(vertex_shader, fragment_shader)
-    }
+    // pub fn default() -> Result<Self> {
+    //     let vertex_shader = Shader::default_vertex()?;
+    //     let fragment_shader = Shader::default_fragment()?;
+    //     Self::new(vertex_shader, fragment_shader)
+    // }
+
+    // pub fn default_font() -> Result<Self> {
+    //     let vertex_shader = Shader::default_vertex()?;
+    //     let fragment_shader = Shader::default_font()?;
+    //     Self::new(vertex_shader, fragment_shader)
+    // }
 
     pub fn new(vertex: Shader<VertexShader>, fragment: Shader<FragmentShader>) -> Result<Self> {
         let shader_program = ShaderProgram(glCreateProgram());

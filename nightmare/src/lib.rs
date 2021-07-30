@@ -5,6 +5,7 @@ mod sprite;
 mod viewport;
 mod transform;
 
+pub mod material;
 pub mod errors;
 pub mod framebuffer;
 pub mod pixels;
@@ -19,6 +20,7 @@ pub use errors::Result;
 
 pub use animation::Animation;
 pub use color::Color;
+pub use color::Colour;
 pub use context::Context;
 pub use renderer::{default::Renderer, default::VertexData};
 pub use sprite::{FillMode, Sprite};

@@ -1,4 +1,6 @@
 #![deny(missing_docs)]
+use std::mem::size_of;
+
 use num_traits::cast::NumCast;
 use gl33::global_loader::*;
 use gl33::*;
@@ -13,19 +15,45 @@ use crate::{Color, Result, Size};
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]
-pub(crate) struct Vao(pub(crate) u32);
-
-impl Vao {
-    pub(crate) fn id(&self) -> u32 {
-        self.0
-    }
-}
+pub struct Vao(pub(crate) u32);
 
 impl Drop for Vao {
     fn drop(&mut self) {
         unsafe { glDeleteVertexArrays(1, &self.0) };
     }
 }
+
+/// Vertex buffer object
+#[derive(Debug, PartialEq)]
+pub struct Vbo(pub(crate) u32);
+
+impl Vbo {
+    /// Create a new vertex buffer object
+    pub fn new(vbo: u32) -> Self {
+        Self(vbo)
+    }
+
+    /// Load vertex data
+    pub fn load_data<T>(&mut self, data: &[T]) {
+        let p = data.as_ptr();
+
+        unsafe {
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                (size_of::<T>() * data.len()) as isize,
+                p.cast(),
+                GL_STATIC_DRAW,
+            )
+        };
+    }
+}
+
+impl Drop for Vbo {
+    fn drop(&mut self) {
+        unsafe { glDeleteBuffers(1, &self.0) };
+    }
+}
+
 
 // -----------------------------------------------------------------------------
 //     - Context builder -
@@ -150,6 +178,7 @@ impl ContextBuilder {
         let inst = Context {
             inner: context,
             current_vao_id: 0,
+            current_vbo_id: 0,
         };
 
         Ok((event_loop, inst))
@@ -199,15 +228,32 @@ impl ContextBuilder {
 /// }
 /// ```
 pub struct Context {
+
     inner: ContextWrapper<PossiblyCurrent, Window>,
     current_vao_id: u32,
+    current_vbo_id: u32,
 }
 
 impl Context {
-    pub(crate) fn bind_vao(&mut self, vao: &Vao) {
-        if self.current_vao_id != vao.id() {
-            glBindVertexArray(vao.id());
-            self.current_vao_id = vao.id();
+    /// Bind the selected Vao.
+    /// This function tracks the current vao 
+    /// so it's cheap to call this on every draw call, 
+    /// as nothing will happen if it's already bound.
+    pub fn bind_vao(&mut self, vao: &Vao) {
+        if self.current_vao_id != vao.0 {
+            glBindVertexArray(vao.0);
+            self.current_vao_id = vao.0;
+        }
+    }
+
+    /// Bind the selected Vbo.
+    /// This functions tracks the current vbo 
+    /// so it's cheap to call this on every draw call,
+    /// as nothing will happen if it's already bound.
+    pub fn bind_vbo(&mut self, vbo: &Vbo) {
+        if self.current_vbo_id != vbo.0 {
+            self.current_vbo_id = vbo.0;
+            unsafe { glBindBuffer(GL_ARRAY_BUFFER, vbo.0) };
         }
     }
 
@@ -251,11 +297,18 @@ impl Context {
         }
     }
 
-    pub(crate) fn next_vao(&mut self) -> Vao {
+    /// Create a new Vao
+    pub fn new_vao(&mut self) -> Vao {
         let mut vao = 0;
-
         unsafe { glGenVertexArrays(1, &mut vao) };
-
         Vao(vao)
     }
+
+    /// Create a new Vbo
+    pub fn new_vbo(&mut self) -> Vbo {
+        let mut vbo = 0;
+        unsafe { glGenBuffers(1, &mut vbo) };
+        Vbo(vbo)
+    }
+
 }

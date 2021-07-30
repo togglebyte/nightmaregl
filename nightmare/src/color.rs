@@ -1,6 +1,9 @@
 #![deny(missing_docs)]
 use crate::pixels::Pixel;
 
+/// Same as color
+pub type Colour = Color;
+
 #[derive(Debug, Copy, Clone)]
 /// A colour with values ranging from 0.0 to 1.0
 pub struct Color {

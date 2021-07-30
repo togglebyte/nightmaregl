@@ -1,4 +1,6 @@
 #![deny(missing_docs)]
+use gl33::*;
+use gl33::global_loader::*;
 use nalgebra::Matrix4;
 use num_traits::NumCast;
 
@@ -78,5 +80,23 @@ impl Viewport {
     /// Get the middle of the viewport
     pub fn centre(&self) -> Position<i32> {
         Position::new(self.size.width / 2, self.size.height / 2)
+    }
+
+    /// Set the OpenGL viewport
+    pub fn set_gl_viewport(&self) {
+        unsafe {
+            glViewport(
+                self.position.x,
+                self.position.y,
+                self.size.width,
+                self.size.height,
+            );
+        }
+    }
+
+    /// Get the view projection by multiplying the projection matrix
+    /// with the view matrix.
+    pub fn view_projection(&self) -> Matrix4<f32> {
+        self.projection * self.view
     }
 }
