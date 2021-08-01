@@ -1,6 +1,7 @@
 use std::mem::size_of;
 use gl33::*;
 use gl33::global_loader::*;
+
 use quote::TokenStreamExt;
 
 pub struct Location(pub u32);
@@ -75,7 +76,35 @@ impl VertexPointers {
         }
     }
 
-    pub fn add<T>(
+    /// Add a vertex attribute, where T is the entire struct:
+    /// ```
+    /// struct Vertex {
+    ///     pos: [f32; 3],
+    ///     uv_coords: [f32; 2]
+    /// }
+    ///
+    /// let mut vp = VertexPointers::new();
+    /// // Add pos
+    /// vp.add::<Vertex>(
+    ///     Location(0),
+    ///     ParamCount(3),
+    ///     GlType::Float,
+    ///     false, // normalized
+    ///     None,  // divisor
+    ///     3,     // field_size
+    /// );
+    ///
+    /// // Add uv_coords
+    /// vp.add::<Vertex>(
+    ///     Location(1),
+    ///     ParamCount(2),
+    ///     GlType::Float,
+    ///     false, // normalized
+    ///     None,  // divisor
+    ///     3,     // field_size
+    /// );
+    /// ```
+    pub fn add<T: VertexPointersT>(
         &mut self,
         location: Location,
         param_count: ParamCount,
@@ -84,17 +113,12 @@ impl VertexPointers {
         divisor: Option<Divisor>,
     ) -> &mut Self {
 
-        // fn rows<T>() -> usize {
-        //     let units = size_of::<T>() / size_of::<f32>();
-        //     (units + 3) / 4
-        // }
+        // let entries = (param_count.0 as u32 + 3) / 4;
 
         let (size, gl_type) = match gl_type {
             GlType::Float => (size_of::<f32>() as u32, GL_FLOAT),
             GlType::Int => (size_of::<u32>() as u32, GL_INT),
         };
-
-        // let entries = rows::<T>() as u32;
 
         // for i in 0..entries {
             let location = location.0;// + i;
@@ -108,12 +132,13 @@ impl VertexPointers {
                     size_of::<T>() as i32,
                     self.next_offset as *const _,
                 );
-                glEnableVertexAttribArray(location) 
+                glEnableVertexAttribArray(location);
+
+                if let Some(Divisor(divisor)) = divisor {
+                    glVertexAttribDivisor(location, divisor);
+                }
             };
 
-            if let Some(Divisor(divisor)) = divisor {
-                unsafe { glVertexAttribDivisor(location, divisor) }
-            }
 
             self.next_offset += param_count.0 as u32 * size;
         // }
@@ -122,3 +147,7 @@ impl VertexPointers {
     }
 }
 
+
+pub trait VertexPointersT {
+    fn vertex_pointer(vp: &mut VertexPointers);
+}

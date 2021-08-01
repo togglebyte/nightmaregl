@@ -29,13 +29,6 @@ fn parse_location(attrs: &[Attribute]) -> Option<u32> {
     parse_int(attrs, "location")
 }
 
-fn parse_uniform(attrs: &[Attribute], field_name: &str) -> Option<String> {
-    match get_attr(attrs, "uniform").is_some() {
-        true => Some(parse_str(attrs, "uniform").unwrap_or(field_name.to_owned())),
-        false => None
-    }
-}
-
 fn get_attr<'a>(attrs: &'a [Attribute], ident: &str) -> Option<&'a Attribute> {
     attrs
         .iter()
@@ -87,20 +80,14 @@ fn parse_str(attrs: &[Attribute], ident_name: &str) -> Option<String> {
 fn type_to_gl(ty: Type) -> GlType {
     match ty {
         Type::Path(type_path) => {
-            eprintln!("{:#?}", type_path.path.get_ident());
-            eprintln!("--------------");
+            let ident = type_path.path.get_ident().expect("Failed to get the type");
 
-            let ident = type_path.path.get_ident().unwrap_or_else(|| {
-                eprintln!("the very thing that won't work: {:#?}", type_path.path);
-                eprintln!("--------------");
-                panic!();
-            });
             if ident == "f32" {
                 GlType::Float
             } else if ident == "i32" {
                 GlType::Int
             } else {
-                panic!("type has to be either f32 or i32")
+                panic!("{}: type has to be either f32 or i32", ident)
             }
         }
         _ => panic!("Invalid type"),
@@ -110,7 +97,7 @@ fn type_to_gl(ty: Type) -> GlType {
 // -----------------------------------------------------------------------------
 //     - Proc macro -
 // -----------------------------------------------------------------------------
-#[proc_macro_derive(VertexData, attributes(location, divisor, uniform))]
+#[proc_macro_derive(VertexData, attributes(location, divisor, gl_type, param_count))]
 pub fn vertex_data(tokens: TokenStream) -> TokenStream {
     let input = parse_macro_input!(tokens as DeriveInput);
 
@@ -127,8 +114,8 @@ pub fn vertex_data(tokens: TokenStream) -> TokenStream {
     let fields = process_fields(&fields, name.clone());
 
     let modified = quote! {
-        impl #name {
-            pub fn vertex_pointer(vp: &mut nightmare::renderer::VertexPointers) {
+        impl nightmare::renderer::vertexpointers::VertexPointersT for #name {
+            fn vertex_pointer(vp: &mut nightmare::renderer::VertexPointers) {
                 #(#fields)*;
             }
         }
@@ -147,108 +134,59 @@ fn process_fields(
         let normalize = normalize(&field.attrs);
 
         let divisor = match parse_divisor(&field.attrs) {
-            Some(d) => quote!{ Some(nightmare::renderer::vertexpointers::Divisor(#d)) },
-            None => quote!{ None }
+            Some(d) => quote! { Some(nightmare::renderer::vertexpointers::Divisor(#d)) },
+            None => quote! { None },
         };
 
-        let location = parse_location(&field.attrs);
-        let uniform = parse_uniform(&field.attrs, &field_ident);
-
-        // Either the location (for pointers) or a uniform has
-        // to be set, otherwise this is invalid vertex data.
-        if location.is_none() && uniform.is_none() {
-            panic!("Either a `location` or a `uniform` has to be set");
-        }
+        let location = parse_location(&field.attrs).expect(&format!("`{}` is missing the `location` attribute", field_ident));
 
         // Type of the field, e.g array, f32 etc.
         let ty = &field.ty;
+        let field_size = 1;
 
         // Get underlying type if there is one
 
         let (param_count, gl_type) = match ty {
-            Type::Array(arr) => {
-                match &arr.len {
-                    syn::Expr::Lit(syn::ExprLit { lit: Lit::Int(lit), .. }) => {
-                        let ty = *arr.elem.clone();
-                        (lit.base10_parse::<i32>().expect("Typical type problems"), ty)
-                    }
-                    _ => (1, ty.clone()),
+            Type::Array(arr) => match &arr.len {
+                syn::Expr::Lit(syn::ExprLit {
+                    lit: Lit::Int(lit), ..
+                }) => {
+                    let ty = *arr.elem.clone();
+                    (
+                        lit.base10_parse::<i32>().expect("Typical type problems"),
+                        ty,
+                    )
                 }
+                _ => (1, ty.clone()),
+            },
+            _ => {
+                let param_count = parse_int(&field.attrs, "param_count").unwrap_or(1);
+                eprintln!("FIND ME {:#?}", param_count);
+                (param_count as _, ty.clone())
             }
-            _ => (1, ty.clone()),
         };
 
-        let gl_type = type_to_gl(gl_type);
+        let gl_type = parse_str(&field.attrs, "gl_type")
+            .map(|t| match t.as_ref() {
+                "f32" => GlType::Float,
+                "i32" => GlType::Int,
+                _ => panic!(
+                    "`{}` has an invalid gl_type: `{}` is an invalid type. Use either f32 or i32",
+                    field_ident, t
+                ),
+            })
+            .unwrap_or_else(|| type_to_gl(gl_type));
 
         // let gl_type = GlType::Float;
 
-        match (location, uniform) {
-            (Some(location), None) => quote!{
-               vp.add::<#name>(
-                   nightmare::renderer::vertexpointers::Location(#location),
-                   nightmare::renderer::vertexpointers::ParamCount(#param_count),
-                   #gl_type,
-                   #normalize,
-                   #divisor,
-               );
-            },
-            (None, Some(uniform)) => quote!{},
-            (None, None) => panic!("Must have either uniform or location"),
-            (Some(_), Some(_)) => panic!("Can't have both uniform and location"),
+        quote! {
+            vp.add::<#name>(
+                nightmare::renderer::vertexpointers::Location(#location),
+                nightmare::renderer::vertexpointers::ParamCount(#param_count),
+                #gl_type,
+                #normalize,
+                #divisor,
+            );
         }
-
-        //        // let field_ident = {
-        //        //     let ident = field.ident.clone().unwrap();
-        //        //     field
-        //        //         .attrs
-        //        //         .iter()
-        //        //         .filter(|attr| attr.path.get_ident().unwrap() == "prop_name")
-        //        //         .next()
-        //        //         .map(|attr| Ident::new("lark", ident.span()))
-        //        //         .unwrap_or(ident)
-        //        // };
-
-        //        let ty = &field.ty;
-        //        // let size = std::mem::size_of::<ty>();
-        //        let attr = field.attrs.iter().next().map(|a| &a.tokens);
-
-        //        let location = parse_int(&field.attrs, "location").unwrap_or(0);//.expect("location missing");
-
-        //        let (param_count, gl_type) = match &field.ty {
-        //            Type::Array(arr) => {
-        //                match &arr.len {
-        //                    syn::Expr::Lit(syn::ExprLit { lit: Lit::Int(lit), .. }) => {
-        //                        let ty = *arr.elem.clone();
-        //                        (lit.base10_parse::<i32>().expect("Typical type problems"), ty)
-        //                    }
-        //                    _ => (1, ty.clone()),
-        //                }
-        //            }
-        //            _ => (1, ty.clone()),
-        //        };
-
-        //        let gl_type = type_to_gl(gl_type);
-
-        //        // TODO:
-        //        // * Parse location as an optional, if it has a location then it's a property
-        //        // * Parse uniform as optional, if it has a uniform name then it's a uniform
-        //        // * If both location and uniform is set or `None` then panic
-        //        // * Vertex pointers needs two functions: add_prop and add_uniform (remove add)
-        //        // * Optional type field (for Matrix4<T> etc.). 
-        //             `T` can be extrapolated from arrays.
-        //        //
-        //        // Questions:
-        //        // * Where do we cache the uniform locations?
-        //        // * How can I solve the underlying type of the matrix? (maybe an optional type field)
-        //        // * How does this end up on the renderer? `Renderer::<(&[Transforms], [Vertex; 4])>::new())`
-
-        // quote! {
-        // //            vp.add::<#ty>(
-        // //                nightmare::renderer::vertexpointers::Location(#location),
-        // //                nightmare::renderer::vertexpointers::ParamCount(#param_count),
-        // //                #gl_type,
-        // //                #normalize
-        // //            );
-        //        }
     })
 }

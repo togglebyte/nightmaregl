@@ -12,6 +12,7 @@ use glutin::{
 };
 
 use crate::{Color, Result, Size};
+use crate::renderer::vertexpointers::{VertexPointers, VertexPointersT};
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]
@@ -33,7 +34,10 @@ impl Vbo {
         Self(vbo)
     }
 
-    /// Load vertex data
+    /// Load vertex data.
+    /// This will overwrite any previously loaded data.
+    /// TODO: call this clear or overwrite or something that makes it obvious that 
+    /// it will replace the data
     pub fn load_data<T>(&mut self, data: &[T]) {
         let p = data.as_ptr();
 
@@ -305,10 +309,17 @@ impl Context {
     }
 
     /// Create a new Vbo
-    pub fn new_vbo(&mut self) -> Vbo {
+    pub fn new_vbo<T: VertexPointersT>(&mut self, data: Option<&[T]>) -> Vbo {
         let mut vbo = 0;
         unsafe { glGenBuffers(1, &mut vbo) };
-        Vbo(vbo)
+        let mut vbo = Vbo(vbo);
+        self.bind_vbo(&vbo);
+        let mut vertex_pointers = VertexPointers::new();
+        T::vertex_pointer(&mut vertex_pointers);
+        if let Some(data) = data {
+            vbo.load_data(data);
+        }
+        vbo
     }
 
 }

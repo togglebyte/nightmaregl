@@ -14,12 +14,12 @@ pub use vertexpointers::{VertexPointers, GlType, new_vertex_pointers};
 pub use shaders::{FragmentShader, Shader, ShaderProgram, VertexShader};
 
 /// Delete this rubbish
-pub fn omg_no_way<T>(data: &[T]) {
+pub fn instanced_draw(instance_count: i32) {
     unsafe {
         glDrawArraysInstanced(
             GL_TRIANGLE_STRIP,
             0,
-            data.len() as i32,
+            instance_count,
             1,
         )
     };
