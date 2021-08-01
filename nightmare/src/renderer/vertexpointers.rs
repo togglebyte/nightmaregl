@@ -112,36 +112,29 @@ impl VertexPointers {
         normalized: bool,
         divisor: Option<Divisor>,
     ) -> &mut Self {
-
-        // let entries = (param_count.0 as u32 + 3) / 4;
-
         let (size, gl_type) = match gl_type {
             GlType::Float => (size_of::<f32>() as u32, GL_FLOAT),
             GlType::Int => (size_of::<u32>() as u32, GL_INT),
         };
 
-        // for i in 0..entries {
-            let location = location.0;// + i;
+        unsafe {
+            glVertexAttribPointer(
+                location.0,
+                param_count.0,
+                gl_type,
+                normalized as u8,
+                size_of::<T>() as i32,
+                self.next_offset as *const _,
+            );
+            glEnableVertexAttribArray(location.0);
 
-            unsafe {
-                glVertexAttribPointer(
-                    location,
-                    param_count.0,
-                    gl_type,
-                    normalized as u8,
-                    size_of::<T>() as i32,
-                    self.next_offset as *const _,
-                );
-                glEnableVertexAttribArray(location);
-
-                if let Some(Divisor(divisor)) = divisor {
-                    glVertexAttribDivisor(location, divisor);
-                }
-            };
+            if let Some(Divisor(divisor)) = divisor {
+                glVertexAttribDivisor(location.0, divisor);
+            }
+        };
 
 
-            self.next_offset += param_count.0 as u32 * size;
-        // }
+        self.next_offset += param_count.0 as u32 * size;
 
         self
     }

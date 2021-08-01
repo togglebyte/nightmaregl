@@ -26,7 +26,6 @@ use crate::{Point, Rect, Size};
 ///
 /// // Second frame is at 32, 0
 /// animation.update(1.0);
-/// eprintln!("origin be all like: {:?}", animation.sprite.texture_rect.origin);
 /// assert_eq!(animation.sprite.texture_rect.origin, Point::new(32, 0));
 /// assert_eq!(animation.current_frame(), 1);
 ///

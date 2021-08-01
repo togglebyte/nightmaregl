@@ -1,17 +1,13 @@
-use std::mem::size_of;
-
 use proc_macro::TokenStream;
-use proc_macro2::Literal;
 use quote::quote;
 use syn::punctuated::Punctuated;
 use syn::token::Comma;
 use syn::{
-    parse_macro_input, Attribute, Data, DataStruct, DeriveInput, Expr, Field, Fields, Ident, Lit,
+    parse_macro_input, Attribute, Data, DataStruct, DeriveInput, Field, Fields, Lit,
     Meta, MetaNameValue, Type,
 };
 
-use nightmare::renderer::vertexpointers::{new_vertex_pointers, GlType, VertexPointers};
-use nightmare::Context;
+use nightmare::renderer::vertexpointers::GlType;
 
 // -----------------------------------------------------------------------------
 //     - Convenience functions -
@@ -90,14 +86,14 @@ fn type_to_gl(ty: Type) -> GlType {
                 panic!("{}: type has to be either f32 or i32", ident)
             }
         }
-        _ => panic!("Invalid type"),
+        _ => panic!("`{:?}` is not supported", stringify!(ty)),
     }
 }
 
 // -----------------------------------------------------------------------------
 //     - Proc macro -
 // -----------------------------------------------------------------------------
-#[proc_macro_derive(VertexData, attributes(location, divisor, gl_type, param_count))]
+#[proc_macro_derive(VertexData, attributes(location, divisor, gl_type))]
 pub fn vertex_data(tokens: TokenStream) -> TokenStream {
     let input = parse_macro_input!(tokens as DeriveInput);
 
@@ -142,28 +138,19 @@ fn process_fields(
 
         // Type of the field, e.g array, f32 etc.
         let ty = &field.ty;
-        let field_size = 1;
 
         // Get underlying type if there is one
 
-        let (param_count, gl_type) = match ty {
+        let gl_type = match ty {
             Type::Array(arr) => match &arr.len {
                 syn::Expr::Lit(syn::ExprLit {
-                    lit: Lit::Int(lit), ..
+                    lit: Lit::Int(_), ..
                 }) => {
-                    let ty = *arr.elem.clone();
-                    (
-                        lit.base10_parse::<i32>().expect("Typical type problems"),
-                        ty,
-                    )
+                   *arr.elem.clone()
                 }
-                _ => (1, ty.clone()),
+                _ => ty.clone()
             },
-            _ => {
-                let param_count = parse_int(&field.attrs, "param_count").unwrap_or(1);
-                eprintln!("FIND ME {:#?}", param_count);
-                (param_count as _, ty.clone())
-            }
+            _ => ty.clone()
         };
 
         let gl_type = parse_str(&field.attrs, "gl_type")
@@ -177,16 +164,21 @@ fn process_fields(
             })
             .unwrap_or_else(|| type_to_gl(gl_type));
 
-        // let gl_type = GlType::Float;
-
         quote! {
-            vp.add::<#name>(
-                nightmare::renderer::vertexpointers::Location(#location),
-                nightmare::renderer::vertexpointers::ParamCount(#param_count),
-                #gl_type,
-                #normalize,
-                #divisor,
-            );
+            let total_param_count = (std::mem::size_of::<#ty>() as i32 + 3) / 4;
+
+            for entry in (0..total_param_count).step_by(4) {
+                let param_count = total_param_count.min(4);
+                let location = #location + entry as u32 / 4;
+
+                vp.add::<#name>(
+                    nightmare::renderer::vertexpointers::Location(location),
+                    nightmare::renderer::vertexpointers::ParamCount(param_count),
+                    #gl_type,
+                    #normalize,
+                    #divisor,
+                );
+            }
         }
     })
 }
