@@ -1,6 +1,5 @@
 [workspace]
 members = [
     "nightmare",
-    "shaders",
     "derive",
 ]

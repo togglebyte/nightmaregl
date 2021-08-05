@@ -1,3 +1,6 @@
+use gl33::*;
+use gl33::global_loader::*;
+
 mod animation;
 mod color;
 mod context;
@@ -9,11 +12,12 @@ pub mod material;
 pub mod errors;
 pub mod framebuffer;
 pub mod pixels;
-pub mod renderer;
+pub mod vertexpointers;
+pub mod shaders;
 pub mod texture;
 
 #[cfg(feature = "eventloop")] pub mod events;
-#[cfg(feature = "text")] pub mod text;
+// #[cfg(feature = "text")] pub mod text;
 #[cfg(feature = "extras")] pub mod extras;
 
 pub use errors::Result;
@@ -22,11 +26,10 @@ pub use animation::Animation;
 pub use color::Color;
 pub use color::Colour;
 pub use context::Context;
-pub use renderer::{default::Renderer, default::VertexData};
 pub use sprite::{FillMode, Sprite};
 pub use texture::Texture;
 pub use viewport::Viewport;
-pub use transform::Transform;
+pub use transform::{Transform, create_model_matrix};
 
 // -----------------------------------------------------------------------------
 //     - Vertex -
@@ -47,3 +50,15 @@ pub type Vector<T> = euclid::default::Vector2D<T>;
 pub type Point<T> = euclid::default::Point2D<T>;
 pub type Rect<T> = euclid::default::Rect<T>;
 pub type Rotation<T> = euclid::Angle<T>;
+
+pub fn instanced_draw(vertex_count: i32, instance_count: i32) {
+    unsafe {
+        glDrawArraysInstanced(
+            GL_TRIANGLE_STRIP,
+            0,
+            vertex_count,
+            instance_count,
+        )
+    };
+}
+

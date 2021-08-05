@@ -7,7 +7,7 @@ use syn::{
     Meta, MetaNameValue, Type,
 };
 
-use nightmare::renderer::vertexpointers::GlType;
+use nightmare::vertexpointers::GlType;
 
 // -----------------------------------------------------------------------------
 //     - Convenience functions -
@@ -110,8 +110,8 @@ pub fn vertex_data(tokens: TokenStream) -> TokenStream {
     let fields = process_fields(&fields, name.clone());
 
     let modified = quote! {
-        impl nightmare::renderer::vertexpointers::VertexPointersT for #name {
-            fn vertex_pointer(vp: &mut nightmare::renderer::VertexPointers) {
+        impl nightmare::vertexpointers::VertexPointersT for #name {
+            fn vertex_pointer(vp: &mut nightmare::vertexpointers::VertexPointers) {
                 #(#fields)*;
             }
         }
@@ -130,7 +130,7 @@ fn process_fields(
         let normalize = normalize(&field.attrs);
 
         let divisor = match parse_divisor(&field.attrs) {
-            Some(d) => quote! { Some(nightmare::renderer::vertexpointers::Divisor(#d)) },
+            Some(d) => quote! { Some(nightmare::vertexpointers::Divisor(#d)) },
             None => quote! { None },
         };
 
@@ -172,8 +172,8 @@ fn process_fields(
                 let location = #location + entry as u32 / 4;
 
                 vp.add::<#name>(
-                    nightmare::renderer::vertexpointers::Location(location),
-                    nightmare::renderer::vertexpointers::ParamCount(param_count),
+                    nightmare::vertexpointers::Location(location),
+                    nightmare::vertexpointers::ParamCount(param_count),
                     #gl_type,
                     #normalize,
                     #divisor,

@@ -88,35 +88,6 @@ impl VertexData {
         let parent = relative_to.matrix();
         // self.model = parent * self.model;
     }
-
-    /// Don't use this you lark 
-    /// Why not? (Stupid past me)
-    pub fn create_model<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>>(
-        sprite: &Sprite<T>,
-        transform: &Transform<T>,
-    ) -> Matrix4<f32> {
-        let position = transform.translation.to_f32();
-        let rotation = transform.rotation.to_f32();
-        let rotation = Vector::from([0.0, 0.0, rotation.radians]);
-
-        let size = sprite.size.to_f32();
-        let anchor = sprite.anchor.to_f32();
-        let scale = transform.scale.to_f32();
-        let anchor = Point3::new(anchor.x * scale.x, anchor.y * scale.y, 0.0);
-
-        let scale = transform.scale.to_f32();
-
-        Matrix4::new_translation(&Vector::from([
-            position.x - anchor.x,
-            position.y - anchor.y,
-            sprite.z_index as f32,
-        ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
-            * Matrix4::new_nonuniform_scaling(&Vector::from([
-                size.width * scale.x,
-                size.height * scale.y,
-                1.0,
-            ]))
-    }
 }
 
 /// Default vertex pointers for [`crate::VertexData`].

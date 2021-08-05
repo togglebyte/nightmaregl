@@ -12,7 +12,7 @@ use glutin::{
 };
 
 use crate::{Color, Result, Size};
-use crate::renderer::vertexpointers::{VertexPointers, VertexPointersT};
+use crate::vertexpointers::{VertexPointers, VertexPointersT};
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]

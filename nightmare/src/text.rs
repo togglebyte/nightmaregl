@@ -10,7 +10,6 @@ use rusttype::{Font as RustTypeFont, Point, PositionedGlyph, Scale, GlyphId};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::errors::{NightmareError, Result};
-use crate::renderer::default::VertexData;
 use crate::texture::Texture;
 use crate::{Context, Position, Size, Vector, Sprite, Transform};
 

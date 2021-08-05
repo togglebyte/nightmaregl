@@ -47,13 +47,16 @@ pub enum GlType {
     Float,
     /// GL_INT
     Int,
+    /// GL_DOUBLE
+    Double,
 }
 
 impl quote::ToTokens for GlType {
     fn to_tokens(&self, stream: &mut proc_macro2::TokenStream) {
         let lark: syn::Path = match self {
-            GlType::Float => syn::parse_str("nightmare::renderer::vertexpointers::GlType::Float").unwrap(),
-            GlType::Int => syn::parse_str("nightmare::renderer::vertexpointers::GlType::Int").unwrap(),
+            GlType::Float => syn::parse_str("nightmare::vertexpointers::GlType::Float").unwrap(),
+            GlType::Int => syn::parse_str("nightmare::vertexpointers::GlType::Int").unwrap(),
+            GlType::Double => syn::parse_str("nightmare::vertexpointers::GlType::Double").unwrap(),
         };
 
         let tokens = lark.into_token_stream();
@@ -112,9 +115,10 @@ impl VertexPointers {
         normalized: bool,
         divisor: Option<Divisor>,
     ) -> &mut Self {
-        let (size, gl_type) = match gl_type {
+        let (size_of_type, gl_type) = match gl_type {
             GlType::Float => (size_of::<f32>() as u32, GL_FLOAT),
             GlType::Int => (size_of::<u32>() as u32, GL_INT),
+            GlType::Double => (size_of::<f64>() as u32, GL_DOUBLE),
         };
 
         unsafe {
@@ -126,6 +130,7 @@ impl VertexPointers {
                 size_of::<T>() as i32,
                 self.next_offset as *const _,
             );
+
             glEnableVertexAttribArray(location.0);
 
             if let Some(Divisor(divisor)) = divisor {
@@ -133,8 +138,8 @@ impl VertexPointers {
             }
         };
 
-
-        self.next_offset += param_count.0 as u32 * size;
+        let offset = param_count.0 as u32 * size_of_type;
+        self.next_offset += offset;
 
         self
     }

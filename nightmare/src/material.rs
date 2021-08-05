@@ -2,7 +2,7 @@ use std::ffi::CStr;
 
 use nalgebra::Matrix4;
 
-use crate::renderer::shaders::ShaderProgram;
+use crate::shaders::ShaderProgram;
 use crate::Result;
 
 pub struct Material<T, U> {
