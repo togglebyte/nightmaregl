@@ -7,7 +7,7 @@ use syn::{
     Meta, MetaNameValue, Type,
 };
 
-// use nightmare::vertexpointers::GlType;
+use crate::vertexpointers::GlType;
 
 // -----------------------------------------------------------------------------
 //     - Convenience functions -
@@ -73,16 +73,15 @@ fn parse_str(attrs: &[Attribute], ident_name: &str) -> Option<String> {
 // -----------------------------------------------------------------------------
 //     - Type to GlType -
 // -----------------------------------------------------------------------------
-// fn type_to_gl(ty: Type) -> GlType {
-fn type_to_gl(ty: Type) -> proc_macro2::TokenStream {
+fn type_to_gl(ty: Type) -> GlType {
     match ty {
         Type::Path(type_path) => {
             let ident = type_path.path.get_ident().expect("Failed to get the type");
 
             if ident == "f32" {
-                quote!(GlType::Float)
+                GlType::Float
             } else if ident == "i32" {
-                quote!(GlType::Int)
+                GlType::Int
             } else {
                 panic!("{}: type has to be either f32 or i32", ident)
             }
@@ -156,8 +155,8 @@ fn process_fields(
 
         let gl_type = parse_str(&field.attrs, "gl_type")
             .map(|t| match t.as_ref() {
-                "f32" => quote!(GlType::Float),
-                "i32" => quote!(GlType::Int),
+                "f32" => GlType::Float,
+                "i32" => GlType::Int,
                 _ => panic!(
                     "`{}` has an invalid gl_type: `{}` is an invalid type. Use either f32 or i32",
                     field_ident, t
@@ -183,3 +182,4 @@ fn process_fields(
         }
     })
 }
+

@@ -19,6 +19,7 @@ pub mod texture;
 #[cfg(feature = "eventloop")] pub mod events;
 // #[cfg(feature = "text")] pub mod text;
 #[cfg(feature = "extras")] pub mod extras;
+#[cfg(feature = "derive")] pub use nightmare_derive::VertexData;
 
 pub use errors::Result;
 
