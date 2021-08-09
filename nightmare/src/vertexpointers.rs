@@ -79,7 +79,9 @@ impl VertexPointers {
         }
     }
 
-    /// Add a vertex attribute, where T is the entire struct:
+    /// Add a vertex attribute pointer to the currently bound VAO,
+    /// where T is the entire struct.
+    ///
     /// ```
     /// struct Vertex {
     ///     pos: [f32; 3],

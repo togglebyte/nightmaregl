@@ -17,7 +17,6 @@ euclid = "0.22.2"
 gl33 = { version = "0.2.1", features = ["global_loader"] }
 glutin = "0.26.0"
 log = "0.4.14"
-nalgebra = "0.26.1"
 num-traits = "0.2.14"
 png = "0.16.8"
 proc-macro2 = "1.0.28"
@@ -26,6 +25,7 @@ rusttype = { version = "0.9.2", features = ["gpu_cache"] }
 syn = "1.0.74"
 thiserror = "1.0.24"
 unicode-segmentation = "1.7.1"
+nalgebra = "0.28.0"
 
 [dependencies.nightmare_derive]
 path = "../derive"

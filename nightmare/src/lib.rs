@@ -8,10 +8,10 @@ mod sprite;
 mod viewport;
 mod transform;
 
-pub mod material;
 pub mod errors;
 pub mod framebuffer;
 pub mod pixels;
+pub mod render;
 pub mod vertexpointers;
 pub mod shaders;
 pub mod texture;
@@ -51,15 +51,4 @@ pub type Vector<T> = euclid::default::Vector2D<T>;
 pub type Point<T> = euclid::default::Point2D<T>;
 pub type Rect<T> = euclid::default::Rect<T>;
 pub type Rotation<T> = euclid::Angle<T>;
-
-pub fn instanced_draw(vertex_count: i32, instance_count: i32) {
-    unsafe {
-        glDrawArraysInstanced(
-            GL_TRIANGLE_STRIP,
-            0,
-            vertex_count,
-            instance_count,
-        )
-    };
-}
 

@@ -1,5 +1,6 @@
 #![deny(missing_docs)]
 use std::mem::size_of;
+use std::marker::PhantomData;
 
 use num_traits::cast::NumCast;
 use gl33::global_loader::*;
@@ -26,19 +27,15 @@ impl Drop for Vao {
 
 /// Vertex buffer object
 #[derive(Debug, PartialEq)]
-pub struct Vbo(pub(crate) u32);
+pub struct Vbo<T: VertexPointersT>(pub(crate) u32, PhantomData<T>);
 
-impl Vbo {
+impl<T: VertexPointersT> Vbo<T> {
     /// Create a new vertex buffer object
     pub fn new(vbo: u32) -> Self {
-        Self(vbo)
+        Self(vbo, PhantomData)
     }
 
-    /// Load vertex data.
-    /// This will overwrite any previously loaded data.
-    /// TODO: call this clear or overwrite or something that makes it obvious that 
-    /// it will replace the data
-    pub fn load_data<T>(&mut self, data: &[T]) {
+    pub(crate) fn load_data(&mut self, data: &[T]) {
         let p = data.as_ptr();
 
         unsafe {
@@ -52,7 +49,7 @@ impl Vbo {
     }
 }
 
-impl Drop for Vbo {
+impl<T: VertexPointersT> Drop for Vbo<T> {
     fn drop(&mut self) {
         unsafe { glDeleteBuffers(1, &self.0) };
     }
@@ -251,14 +248,25 @@ impl Context {
     }
 
     /// Bind the selected Vbo.
-    /// This functions tracks the current vbo 
-    /// so it's cheap to call this on every draw call,
+    /// This functions tracks the current vbo.
+    /// It's cheap to call this on every draw call,
     /// as nothing will happen if it's already bound.
-    pub fn bind_vbo(&mut self, vbo: &Vbo) {
+    pub fn bind_vbo<T: VertexPointersT>(&mut self, vbo: &Vbo<T>) {
+        eprintln!("bind: {} vbo", vbo.0);
         if self.current_vbo_id != vbo.0 {
             self.current_vbo_id = vbo.0;
             unsafe { glBindBuffer(GL_ARRAY_BUFFER, vbo.0) };
         }
+    }
+
+    /// Load vertex data.
+    /// This will overwrite any previously loaded data.
+    /// TODO: call this clear or overwrite or something that makes it obvious that 
+    /// it will replace the data
+    pub fn load_data<T: VertexPointersT>(&mut self, vao: &Vao, vbo: &mut Vbo<T>, data: &[T]) {
+        self.bind_vao(vao);
+        self.bind_vbo(vbo);
+        vbo.load_data(data);
     }
 
     /// Swap the buffer on the current window, making all changes visible.
@@ -283,24 +291,6 @@ impl Context {
         self.inner.window()
     }
 
-    /// Clear the frame buffer.
-    /// ```
-    /// use nightmaregl::Color;
-    /// # use nightmaregl::Context;
-    /// # fn run(context: &mut Context) {
-    /// loop {
-    ///     context.clear(Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
-    ///     context.swap_buffers();
-    /// }
-    /// # }
-    /// ```
-    pub fn clear(&self, color: Color) {
-        unsafe {
-            glClearColor(color.r, color.g, color.b, color.a);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        }
-    }
-
     /// Create a new Vao
     pub fn new_vao(&mut self) -> Vao {
         let mut vao = 0;
@@ -309,10 +299,10 @@ impl Context {
     }
 
     /// Create a new Vbo
-    pub fn new_vbo<T: VertexPointersT>(&mut self, data: Option<&[T]>) -> Vbo {
+    pub fn new_vbo<T: VertexPointersT>(&mut self, data: Option<&[T]>) -> Vbo<T> {
         let mut vbo = 0;
         unsafe { glGenBuffers(1, &mut vbo) };
-        let mut vbo = Vbo(vbo);
+        let mut vbo = Vbo::new(vbo);
         self.bind_vbo(&vbo);
         let mut vertex_pointers = VertexPointers::new();
         T::vertex_pointer(&mut vertex_pointers);
