@@ -26,7 +26,7 @@ pub use errors::Result;
 pub use animation::Animation;
 pub use color::Color;
 pub use color::Colour;
-pub use context::Context;
+pub use context::{Context, Vao, Vbo};
 pub use sprite::{FillMode, Sprite};
 pub use texture::Texture;
 pub use viewport::Viewport;

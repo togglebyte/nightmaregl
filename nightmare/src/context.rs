@@ -252,7 +252,6 @@ impl Context {
     /// It's cheap to call this on every draw call,
     /// as nothing will happen if it's already bound.
     pub fn bind_vbo<T: VertexPointersT>(&mut self, vbo: &Vbo<T>) {
-        eprintln!("bind: {} vbo", vbo.0);
         if self.current_vbo_id != vbo.0 {
             self.current_vbo_id = vbo.0;
             unsafe { glBindBuffer(GL_ARRAY_BUFFER, vbo.0) };
