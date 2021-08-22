@@ -1,6 +1,3 @@
-use gl33::*;
-use gl33::global_loader::*;
-
 mod animation;
 mod color;
 mod context;

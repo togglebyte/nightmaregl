@@ -12,8 +12,9 @@ use glutin::{
     Api, ContextBuilder as GlutinContextBuilder, ContextWrapper, GlRequest, PossiblyCurrent,
 };
 
-use crate::{Color, Result, Size};
+use crate::{Result, Size};
 use crate::vertexpointers::{VertexPointers, VertexPointersT};
+use crate::shaders::ShaderProgram;
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]
@@ -180,6 +181,7 @@ impl ContextBuilder {
             inner: context,
             current_vao_id: 0,
             current_vbo_id: 0,
+            current_shader_program_id: 0,
         };
 
         Ok((event_loop, inst))
@@ -229,10 +231,10 @@ impl ContextBuilder {
 /// }
 /// ```
 pub struct Context {
-
     inner: ContextWrapper<PossiblyCurrent, Window>,
     current_vao_id: u32,
     current_vbo_id: u32,
+    current_shader_program_id: u32, 
 }
 
 impl Context {
@@ -258,12 +260,21 @@ impl Context {
         }
     }
 
+    /// Enable the shader.
+    /// This is cheap to run as it won't enable it if it's already
+    /// enabled.
+    pub fn enable_shader(&mut self, shader_program: &ShaderProgram) {
+        if self.current_shader_program_id != shader_program.0 {
+            self.current_shader_program_id = shader_program.0;
+            shader_program.enable();
+        }
+    }
+
     /// Load vertex data.
     /// This will overwrite any previously loaded data.
     /// TODO: call this clear or overwrite or something that makes it obvious that 
     /// it will replace the data
-    pub fn load_data<T: VertexPointersT>(&mut self, vao: &Vao, vbo: &mut Vbo<T>, data: &[T]) {
-        self.bind_vao(vao);
+    pub fn load_data<T: VertexPointersT>(&mut self, vbo: &mut Vbo<T>, data: &[T]) {
         self.bind_vbo(vbo);
         vbo.load_data(data);
     }

@@ -1,5 +1,4 @@
 #![deny(missing_docs)]
-use gl33::*;
 use gl33::global_loader::*;
 use nalgebra::Matrix4;
 use num_traits::NumCast;

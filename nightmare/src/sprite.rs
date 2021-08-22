@@ -118,25 +118,25 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
 //         }
 //     }
 
-    pub(crate) fn get_texture_position(&self) -> (f32, f32) {
-        let total_tex_size = self.texture_size.to_f32();
-        let origin = self.texture_rect.origin.to_f32();
+    // pub(crate) fn get_texture_position(&self) -> (f32, f32) {
+    //     let total_tex_size = self.texture_size.to_f32();
+    //     let origin = self.texture_rect.origin.to_f32();
 
-        (
-            origin.x / total_tex_size.width,
-            origin.y / total_tex_size.height,
-        )
-    }
+    //     (
+    //         origin.x / total_tex_size.width,
+    //         origin.y / total_tex_size.height,
+    //     )
+    // }
 
-    pub(crate) fn get_texture_size(&self) -> (f32, f32) {
-        let tex_rect_size = self.texture_rect.size.to_f32();
-        let total_tex_size = self.texture_size.to_f32();
+    // pub(crate) fn get_texture_size(&self) -> (f32, f32) {
+    //     let tex_rect_size = self.texture_rect.size.to_f32();
+    //     let total_tex_size = self.texture_size.to_f32();
 
-        (
-            tex_rect_size.width / total_tex_size.width,
-            tex_rect_size.height / total_tex_size.height,
-        )
-    }
+    //     (
+    //         tex_rect_size.width / total_tex_size.width,
+    //         tex_rect_size.height / total_tex_size.height,
+    //     )
+    // }
 
     // /// Convert the sprite to vertex data.
     // /// Works with the default renderer.
