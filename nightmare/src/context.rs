@@ -12,13 +12,23 @@ use glutin::{
     Api, ContextBuilder as GlutinContextBuilder, ContextWrapper, GlRequest, PossiblyCurrent,
 };
 
-use crate::{Result, Size};
-use crate::vertexpointers::{VertexPointers, VertexPointersT};
+use crate::{Result, Size, Color};
+use crate::vertexpointers::{VertexPointers, ToVertexPointers};
 use crate::shaders::ShaderProgram;
 
 /// Vertex array object
 #[derive(Debug, PartialEq)]
 pub struct Vao(pub(crate) u32);
+
+impl Vao {
+    /// Describe the data to the VAO
+    pub fn describe<T: ToVertexPointers>(&self, context: &mut Context, vbo: &Vbo<T>) {
+        context.bind_vao(self);
+        context.bind_vbo(vbo);
+        let mut vertex_pointers = VertexPointers::new();
+        T::vertex_pointer(&mut vertex_pointers);
+    }
+}
 
 impl Drop for Vao {
     fn drop(&mut self) {
@@ -28,15 +38,20 @@ impl Drop for Vao {
 
 /// Vertex buffer object
 #[derive(Debug, PartialEq)]
-pub struct Vbo<T: VertexPointersT>(pub(crate) u32, PhantomData<T>);
+pub struct Vbo<T: ToVertexPointers>(pub(crate) u32, PhantomData<T>);
 
-impl<T: VertexPointersT> Vbo<T> {
+impl<T: ToVertexPointers> Vbo<T> {
     /// Create a new vertex buffer object
     pub fn new(vbo: u32) -> Self {
         Self(vbo, PhantomData)
     }
 
-    pub(crate) fn load_data(&mut self, data: &[T]) {
+    /// Load vertex data.
+    /// This will overwrite any previously loaded data.
+    /// It is possible to load data at any point in the VBOs life cycle.
+    pub fn load_data(&mut self, context: &mut Context, data: &[T]) {
+        context.bind_vbo(self);
+
         let p = data.as_ptr();
 
         unsafe {
@@ -50,7 +65,7 @@ impl<T: VertexPointersT> Vbo<T> {
     }
 }
 
-impl<T: VertexPointersT> Drop for Vbo<T> {
+impl<T: ToVertexPointers> Drop for Vbo<T> {
     fn drop(&mut self) {
         unsafe { glDeleteBuffers(1, &self.0) };
     }
@@ -253,7 +268,7 @@ impl Context {
     /// This functions tracks the current vbo.
     /// It's cheap to call this on every draw call,
     /// as nothing will happen if it's already bound.
-    pub fn bind_vbo<T: VertexPointersT>(&mut self, vbo: &Vbo<T>) {
+    pub fn bind_vbo<T: ToVertexPointers>(&mut self, vbo: &Vbo<T>) {
         if self.current_vbo_id != vbo.0 {
             self.current_vbo_id = vbo.0;
             unsafe { glBindBuffer(GL_ARRAY_BUFFER, vbo.0) };
@@ -268,15 +283,6 @@ impl Context {
             self.current_shader_program_id = shader_program.0;
             shader_program.enable();
         }
-    }
-
-    /// Load vertex data.
-    /// This will overwrite any previously loaded data.
-    /// TODO: call this clear or overwrite or something that makes it obvious that 
-    /// it will replace the data
-    pub fn load_data<T: VertexPointersT>(&mut self, vbo: &mut Vbo<T>, data: &[T]) {
-        self.bind_vbo(vbo);
-        vbo.load_data(data);
     }
 
     /// Swap the buffer on the current window, making all changes visible.
@@ -308,17 +314,30 @@ impl Context {
         Vao(vao)
     }
 
+     /// Clear the frame buffer.
+    /// ```
+    /// use nightmaregl::Color;
+    /// # use nightmaregl::Context;
+    /// # fn run(context: &mut Context) {
+    /// loop {
+    ///     context.clear(Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 });
+    ///     context.swap_buffers();
+    /// }
+    /// # }
+    /// ```
+    pub fn clear(&self, color: Color) {
+        unsafe {
+            glClearColor(color.r, color.g, color.b, color.a);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        }
+    }
+
     /// Create a new Vbo
-    pub fn new_vbo<T: VertexPointersT>(&mut self, data: Option<&[T]>) -> Vbo<T> {
+    pub fn new_vbo<T: ToVertexPointers>(&mut self) -> Vbo<T> {
         let mut vbo = 0;
         unsafe { glGenBuffers(1, &mut vbo) };
-        let mut vbo = Vbo::new(vbo);
+        let vbo = Vbo::new(vbo);
         self.bind_vbo(&vbo);
-        let mut vertex_pointers = VertexPointers::new();
-        T::vertex_pointer(&mut vertex_pointers);
-        if let Some(data) = data {
-            vbo.load_data(data);
-        }
         vbo
     }
 

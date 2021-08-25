@@ -1,8 +1,9 @@
-use nightmaregl::events::{Event, EventLoop, Key, LoopAction};
-use nightmaregl::texture::Texture;
-use nightmaregl::{
-    Color, Context, Position, Renderer, Result, 
-    Rotation, Size, Sprite, Transform, Viewport, VertexData
+use nightmare::events::{Event, EventLoop, Key, LoopAction};
+use nightmare::texture::Texture;
+use nightmare::render2d::{Model, SimpleRenderer};
+use nightmare::{
+    Color, Context, Position, Result, create_model_matrix,
+    Rotation, Size, Sprite, Transform, Viewport, VertexData,
 };
 
 fn main() -> Result<()> {
@@ -10,9 +11,9 @@ fn main() -> Result<()> {
     //     - Context -
     // -----------------------------------------------------------------------------
     let (el, mut context) = Context::builder("Best game ever!")
-        .resizable(false)
-        .vsync(false)
-        .with_size(Size::new(800, 600))
+        // .resizable(false)
+        // .vsync(false)
+        // .with_size(Size::new(800, 600))
         .build()?;
 
     let eventloop = EventLoop::<()>::new(el);
@@ -22,8 +23,7 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let window_size = context.window_size();
     let mut viewport = Viewport::new(Position::zero(), window_size);
-    let mut renderer = Renderer::default(&mut context)?;
-    renderer.pixel_size = 4;
+    let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
 
     // -----------------------------------------------------------------------------
     //     - Create a sprite -
@@ -35,10 +35,11 @@ fn main() -> Result<()> {
     let texture = Texture::from_disk("examples/buny.png")?;
     let mut sprite = Sprite::new(&texture);
 
-    sprite.anchor = (sprite.size / 2.0).to_vector();
+    sprite.anchor = (sprite.size / 2.0f32).to_vector();
+    sprite.size = Size::new(sprite.size.width * 4.0, sprite.size.height * 4.0);
 
     let mut transform = Transform::default();
-    transform.translate_mut(viewport.centre().to_f32() / renderer.pixel_size as f32);
+    transform.translate_mut(viewport.centre().to_f32());
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -52,29 +53,20 @@ fn main() -> Result<()> {
                 // Clear the screen
                 context.clear(Color::grey());
 
-                // Move the sprite a bit
-                let mut new_pos = viewport.centre().cast::<f32>() / renderer.pixel_size as f32;
-                new_pos += Position::new(t.sin(), t.cos()) * 20.0;
+                // Move the sprite a bit...
+                let mut new_pos = viewport.centre().cast::<f32>();
+                new_pos += Position::new(t.sin(), t.cos()) * 200.0;
                 new_pos -= Position::new(sprite.size.width, sprite.size.height);
                 transform.translate_mut(new_pos);
-                // transform.translate_mut(Position::new(50.0, 50.0));
 
                 // ... and rotate it
                 transform.rotate_mut(Rotation::radians(t / 1.0));
 
-                let vertex_data = VertexData::new(&sprite, &transform);
+                let model_matrix = create_model_matrix(&sprite, &transform);
 
-                // Draw the sprite
-                let res = renderer.render(
-                    &texture,
-                    &[vertex_data],
-                    &viewport,
-                    &mut context,
-                );
-
-                if let Err(e) = res {
-                    eprintln!("error rendering: {:?}", e);
-                }
+                let model = Model::new(model_matrix);
+                renderer.load_data(&[model], &mut context);
+                renderer.render_instanced(&mut context, 1);
 
                 context.swap_buffers();
             }

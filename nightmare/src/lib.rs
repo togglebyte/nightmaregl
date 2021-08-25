@@ -9,6 +9,7 @@ pub mod errors;
 pub mod framebuffer;
 pub mod pixels;
 pub mod render;
+pub mod render2d;
 pub mod vertexpointers;
 pub mod shaders;
 pub mod texture;
@@ -16,7 +17,6 @@ pub mod texture;
 #[cfg(feature = "eventloop")] pub mod events;
 // #[cfg(feature = "text")] pub mod text;
 #[cfg(feature = "extras")] pub mod extras;
-#[cfg(feature = "derive")] pub use nightmare_derive::VertexData;
 
 pub use errors::Result;
 
@@ -24,10 +24,11 @@ pub use animation::Animation;
 pub use color::Color;
 pub use color::Colour;
 pub use context::{Context, Vao, Vbo};
+pub use nightmare_derive::VertexData;
 pub use sprite::{FillMode, Sprite};
 pub use texture::Texture;
-pub use viewport::Viewport;
 pub use transform::{Transform, create_model_matrix};
+pub use viewport::Viewport;
 
 // -----------------------------------------------------------------------------
 //     - Vertex -

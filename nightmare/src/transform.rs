@@ -5,6 +5,7 @@ use crate::{Position, Rotation, Vector, Sprite};
 use nalgebra::{Matrix4, Scalar, Point3, Vector as NalVector};
 use num_traits::{One, Zero, NumCast};
 
+// TODO: add a function to convert a Matrix4<T> into a Transform<T>
 #[derive(Debug, Copy, Clone)]
 pub struct Transform<T> {
     pub translation: Position<T>,
@@ -79,6 +80,56 @@ impl<T: Copy + NumCast + Zero + One + MulAssign + Default + Scalar + Div<Output 
                 1.0
             ]))
     }
+
+    /// Make the transformation relative to another transformation.
+    /// This is useful when working in local space:
+    ///
+    /// ```
+    /// use nightmaregl::{Sprite, Transform, Position, Size};
+    /// // Parent
+    /// let parent_sprite = Sprite::<f32>::from_size(Size::new(32.0, 32.0));
+    /// let mut parent_transform = Transform::default();
+    /// parent_transform.translate_mut(Position::new(100.0, 100.0));
+    ///
+    /// let child_sprite = Sprite::<f32>::from_size(Size::new(32.0, 32.0));
+    /// let mut child_transform = Transform::default();
+    /// // Place the child 64 pixels to the right
+    /// child_transform.translate_mut(Position::new(0.0, 0.0));
+    /// let mut vertex_data = crate_model_matrix(&child_sprite, &child_transform);
+    ///
+    /// // Make the child relative to the parent.
+    /// // By doing so, the child_sprite is placed 64 pixels to the 
+    /// // right of the parent
+    /// vertex_data.make_relative(&parent_transform);
+    /// let pos = vertex_data.model.column(3);
+    /// assert_eq!(pos[0], 100.0);
+    /// assert_eq!(pos[1], 100.0);
+    /// ```
+    pub fn relative_to(&mut self, relative_to: &Transform<T>) -> Transform<T> {
+        let parent = relative_to.matrix();
+        let new_matrix = parent * self.matrix();
+
+        let (translation, rotation, scale) = {
+            translation = 
+        };
+
+        let mut new_transform = Transform::new(translation);
+        new_transform.rotation = rotation;
+        new_transform.scale = scale;
+
+        new_transform
+    }
+
+    // pub fn make_relative_to(&mut self, relative_to: &Transform<T>) {
+    //     let parent = relative_to.matrix();
+    //     let we_want_this_well_I_want_this = parent * self.matrix();
+
+    //     let (translation, rotation, scale) = smush_into_parts(we_want_this_well_I_want_this);
+
+    //     self.translation = translation;
+    //     self.rotation = rotation;
+    //     self.scale = scale;
+    // }
 
 }
 

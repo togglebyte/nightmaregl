@@ -5,11 +5,10 @@ authors = ["Togglebit <me@togglebit.io>"]
 edition = "2018"
 
 [features]
-default = ["text", "eventloop", "derive"]
+default = ["text", "eventloop"]
 text = []
 eventloop = []
 extras = []
-derive = ["nightmare_derive"]
 
 [dependencies]
 bytemuck = { version = "1.5.1", features = ["derive"] }
@@ -26,7 +25,4 @@ syn = "1.0.74"
 thiserror = "1.0.24"
 unicode-segmentation = "1.7.1"
 nalgebra = "0.28.0"
-
-[dependencies.nightmare_derive]
-path = "../derive"
-optional = true
+nightmare_derive = { path = "../derive" }

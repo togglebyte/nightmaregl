@@ -109,7 +109,7 @@ impl VertexPointers {
     ///     3,     // field_size
     /// );
     /// ```
-    pub fn add<T: VertexPointersT>(
+    pub fn add<T: ToVertexPointers>(
         &mut self,
         location: Location,
         param_count: ParamCount,
@@ -148,6 +148,6 @@ impl VertexPointers {
 }
 
 
-pub trait VertexPointersT {
+pub trait ToVertexPointers {
     fn vertex_pointer(vp: &mut VertexPointers);
 }

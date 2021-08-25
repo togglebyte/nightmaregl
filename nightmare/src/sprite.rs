@@ -1,7 +1,7 @@
 #![deny(missing_docs)]
 use std::ops::{Div, MulAssign};
 
-use nalgebra::Scalar;
+use nalgebra::{Matrix4, Scalar, Point3, Vector as NalVector};
 use num_traits::cast::NumCast;
 use num_traits::Zero;
 
@@ -80,23 +80,6 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
             fill: FillMode::Stretch,
         }
     }
-
-    // /// Create a model matrix
-    // pub fn model(&self) -> Matrix4<f32> {
-    //     let position = self.position.to_f32();
-    //     let size = self.size.to_f32();
-    //     let rotation = self.rotation.to_f32();
-    //     let rotation = Vector::from([0.0, 0.0, rotation.radians]);
-    //     let anchor = self.anchor.to_f32();
-    //     let anchor = Point3::new(anchor.x, anchor.y, 0.0);
-
-    //     Matrix4::new_translation(&Vector::from([
-    //         position.x - anchor.x,
-    //         position.y - anchor.y,
-    //         self.z_index as f32,
-    //     ])) * Matrix4::new_rotation_wrt_point(rotation, anchor)
-    //         * Matrix4::new_nonuniform_scaling(&Vector::from([size.width, size.height, 1.0]))
-    // }
 
 //     /// Transform a sprite relative to another sprite
 //     /// and produce vertex data.

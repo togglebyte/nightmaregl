@@ -1,9 +1,10 @@
 use std::time::Instant;
 
-use nightmaregl::events::{Event, EventLoop, LoopAction};
-use nightmaregl::texture::Texture;
-use nightmaregl::{
-    Color, Context, Position, Renderer, Result, Vector,
+use nightmare::events::{Event, EventLoop, LoopAction};
+use nightmare::render2d::{Model, SimpleRenderer};
+use nightmare::texture::Texture;
+use nightmare::{
+    Color, Context, Position, Result, Vector, create_model_matrix,
     Rotation, Sprite, VertexData, Viewport, Transform
 };
 
@@ -23,7 +24,7 @@ fn main() -> Result<()> {
     let window_size = context.window_size();
     let viewport = Viewport::new(Position::zero(), window_size);
 
-    let renderer = Renderer::default(&mut context)?;
+    let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
 
     // -----------------------------------------------------------------------------
     //     - First sprite, texture and transform -
@@ -38,11 +39,11 @@ fn main() -> Result<()> {
     buny_sprite.anchor = (buny_sprite.size / 2.0).to_vector();
 
     let mut buny_transform = Transform::default();
-    buny_transform.scale_mut(Vector::new(8.0, 8.0));
+    // buny_transform.scale_mut(Vector::new(8.0, 8.0));
 
     // Create a position that is the centre of the screen.
     // Because the pixel size is 8, the position has to be divided by 8.
-    let buny_pos = (viewport.size().cast() / 2.0f32 / renderer.pixel_size as f32).to_vector();
+    let buny_pos = (viewport.size().cast() / 2.0f32).to_vector();
 
     // Translate the transform to the new position.
     buny_transform.translate_mut(buny_pos);
@@ -60,7 +61,7 @@ fn main() -> Result<()> {
     // Place this to the right of the buny sprite.
     // Note that the values for the position reflects the original
     // size and anchor point of the buny sprite.
-    arrow_transform.translate_mut(Position::new(14.0, -14.0));
+    arrow_transform.translate_mut(Position::new(1.0, 0.0));
 
     let now = Instant::now();
 
@@ -70,31 +71,29 @@ fn main() -> Result<()> {
                 context.clear(Color::grey());
 
                 // Get the vertex data for the buny sprite
-                let buny_vertex_data = VertexData::new(&buny_sprite, &buny_transform);
+                let bunny_model = create_model_matrix(&buny_sprite, &buny_transform);
+                let model = Model::new(bunny_model);
+                eprintln!("{}", bunny_model);
 
                 // Render the buny
-                let _ = renderer.render(
-                    &buny,
-                    &[buny_vertex_data],
-                    &viewport,
-                    &mut context,
-                );
+                buny.bind();
+                renderer.load_data(&[model], &mut context);
+                renderer.render_instanced(&mut context, 1);
 
                 // Rotate the buny sprite.
-                let rot = Rotation::radians(now.elapsed().as_secs_f64().sin() as f32);
-                buny_transform.rotate_mut(rot);
-                    
-                let mut arrow_vertex_data = VertexData::new(&arrow, &arrow_transform);
+                // let rot = Rotation::radians(now.elapsed().as_secs_f64().sin() as f32);
+                // buny_transform.rotate_mut(rot);
+
+                let mut arrow_model = create_model_matrix(&arrow, &arrow_transform);
                 // Make the arrow vertex data relative to the buny.
-                arrow_vertex_data.make_relative(&buny_transform);
+                arrow_model = bunny_model * arrow_model;
+                let model = Model::new(arrow_model);
+                // arrow_vertex_data.make_relative(&buny_transform);
 
                 // Render the arrow
-                let _ = renderer.render(
-                    &arrow_texture,
-                    &[arrow_vertex_data],
-                    &viewport,
-                    &mut context
-                );
+                arrow_texture.bind();
+                renderer.load_data(&[model], &mut context);
+                renderer.render_instanced(&mut context, 1);
 
                 context.swap_buffers();
             }
