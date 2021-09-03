@@ -9,13 +9,6 @@ use crate::Result;
 use crate::errors::NightmareError;
 
 // -----------------------------------------------------------------------------
-//     - Default shaders -
-// -----------------------------------------------------------------------------
-const DEFAULT_VERTEX: &[u8] = include_bytes!("default.vert");
-const DEFAULT_FRAGMENT: &[u8] = include_bytes!("default.frag");
-const DEFAULT_FONT: &[u8] = include_bytes!("font.frag");
-
-// -----------------------------------------------------------------------------
 //     - Shader types -
 // -----------------------------------------------------------------------------
 pub struct VertexShader;
@@ -42,10 +35,6 @@ impl Shader<VertexShader> {
             _type: VertexShader,
         })
     }
-
-    pub fn default_vertex() -> Result<Shader<VertexShader>> {
-        Self::new_vertex(&DEFAULT_VERTEX)
-    }
 }
 
 impl Shader<FragmentShader> {
@@ -59,14 +48,6 @@ impl Shader<FragmentShader> {
             id,
             _type: FragmentShader,
         })
-    }
-
-    pub fn default_fragment() -> Result<Shader<FragmentShader>> {
-        Self::new_fragment(&DEFAULT_FRAGMENT)
-    }
-
-    pub fn default_font() -> Result<Shader<FragmentShader>> {
-        Self::new_fragment(&DEFAULT_FONT)
     }
 }
 

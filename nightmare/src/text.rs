@@ -10,8 +10,20 @@ use rusttype::{Font as RustTypeFont, Point, PositionedGlyph, Scale, GlyphId};
 use unicode_segmentation::UnicodeSegmentation;
 
 use crate::errors::{NightmareError, Result};
+use crate::render2d::{VERTEX_SHADER, Model};
 use crate::texture::Texture;
-use crate::{Context, Position, Size, Vector, Sprite, Transform};
+use crate::{Context, Position, Size, Sprite, Transform, Rotation};
+use crate::shaders::{Shader, ShaderProgram};
+
+// Default font shader
+const DEFAULT_FONT: &[u8] = include_bytes!("font.frag");
+
+/// Default font shader
+pub fn default_font_shader() -> Result<ShaderProgram> {
+    let vertex_shader = Shader::new_vertex(VERTEX_SHADER)?;
+    let fragment_shader = Shader::new_fragment(&crate::text::DEFAULT_FONT)?;
+    Ok(ShaderProgram::new(vertex_shader, fragment_shader)?)
+}
 
 // -----------------------------------------------------------------------------
 //     - Word wrapping -
@@ -55,8 +67,8 @@ pub struct Text {
     font: Arc<Font>,
     wrap: WordWrap,
     cache: FontCache,
-    sprites: Vec<(Sprite<f32>, Transform<f32>)>,
-    position: Position<f32>,
+    sprites: Vec<(Sprite, Transform)>,
+    position: Position,
     caret: Point<f32>,
     previous_glyph_id: Option<GlyphId>
 }
@@ -78,7 +90,7 @@ impl Text {
             wrap,
             cache: FontCache::new(Size::new(512.0, 512.0)),
             sprites: Vec::new(),
-            position: Position::zero(),
+            position: Position::zeros(),
             caret: Point {x: 0.0, y: 0.0, },
             previous_glyph_id: None,
         }
@@ -98,11 +110,10 @@ impl Text {
     }
 
     /// Set the position of the font.
-    // TODO: investigate: should position be Position<T> instead?
-    pub fn position(&mut self, position: Position<f32>) {
+    pub fn position(&mut self, position: Position) {
         self.position = position;
         self.sprites.iter_mut().for_each(|(_, transform)| {
-            transform.translate_mut(position);
+            transform.append_translation_mut(&position.into());
         });
     }
 
@@ -114,17 +125,26 @@ impl Text {
     }
 
     /// The texture for the font
-    pub fn texture(&self) -> &Texture<f32> { 
+    pub fn texture(&self) -> &Texture { 
         &self.cache.texture
     }
 
-    /// Vertex data used to position the font
-    pub fn vertex_data(&self) -> Vec<VertexData> {
-        self.sprites.iter().map(|(s, t)| VertexData::new(s, t)).collect()
+    // /// Vertex data used to position the font
+    // pub fn vertex_data<T: ToVertexPointers + From<(Sprite, Texture)>>(&self) -> Vec<Model> {
+    //     self.sprites.iter().map(|(s, t)| VertexData::new(s, t)).collect()
+    // }
+
+    /// Model matrices
+    pub fn models(&self) -> Vec<Model> {
+        self.sprites.iter().map(|(sprite, transform)| {
+            let model_matrix = crate::create_model_matrix(&sprite, &transform);
+            Model::new(model_matrix, sprite.texture_rect)
+        }).collect::<Vec<_>>()
     }
 
+
     /// Current caret
-    pub fn caret(&self) -> Position<f32> {
+    pub fn caret(&self) -> Position {
         Position::new(self.caret.x, self.caret.y)
     }
 
@@ -150,11 +170,13 @@ impl Text {
         // Write all the cached glyphs to a texture
         let texture = &mut self.cache.texture;
         self.cache.inner.cache_queued(|rect, data| {
+
             texture.write_region(
-                Position::new(rect.min.x, rect.min.y).cast(),
-                Size::new(rect.width(), rect.height()).cast(),
+                Position::new(rect.min.x as f32, rect.min.y as f32),
+                Size::new(rect.width() as f32, rect.height() as f32),
                 data,
             );
+
         })?;
 
         self.sprites = glyphs
@@ -163,18 +185,30 @@ impl Text {
             .flatten()
             .map(|(uv, vert)| {
                 let mut sprite = Sprite::new(&self.cache.texture);
-                let mut transform = Transform::default();
-                let scale = self.cache.size.width;
-                let tex_offset = crate::Point::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
+                let scale = self.cache.size.x;
+                let tex_offset = crate::Position::new(uv.min.x as f32, uv.min.y as f32).cast() * scale;
                 let size = Size::new(uv.width(), uv.height());
-                let pos = Position::new(vert.min.x, -vert.max.y) + self.position.cast();
+                let pos = Position::new(vert.min.x as f32, -vert.max.y as f32) + self.position.cast();
 
-                sprite.texture_rect.origin = tex_offset;
-                sprite.texture_rect.size = size.cast() * scale;
+                let texture_size = sprite.texture_size;
+                let offset = Position::new(
+                    tex_offset.x / texture_size.x,
+                    tex_offset.y / texture_size.x,
+                );
+                // sprite.texture_rect.set_origin(tex_offset);
+                sprite.texture_rect.set_origin(offset);
+                eprintln!("{:?}", size);
+                // sprite.texture_rect.set_size(size * scale);
+                sprite.texture_rect.set_size(size);
                 sprite.size = size;
 
-                transform.translate_mut(pos.cast());
-                transform.scale = Vector::new(scale, scale);
+                let transform = Transform::from_parts(
+                    pos.into(),
+                    Rotation::new(0.0).into(),
+                    scale,
+                );
+                // transform.append_translation_mut(&pos.into());
+                // transform.scale = Vector::new(scale, scale);
 
                 (sprite, transform)
             })
@@ -329,21 +363,20 @@ impl Font {
 // -----------------------------------------------------------------------------
 struct FontCache {
     inner: Cache<'static>,
-    size: Size<f32>,
-    texture: Texture<f32>,
+    size: Size,
+    texture: Texture,
 }
 
 impl FontCache {
-    fn new(size: Size<f32>) -> Self {
+    fn new(size: Size) -> Self {
         let cache = {
-            let size = size.cast();
-            Cache::builder().dimensions(size.width, size.height).build()
+            Cache::builder().dimensions(size.x as u32, size.y as u32).build()
         };
 
         Self {
             inner: cache,
             size,
-            texture: Texture::<f32>::new().empty_text(size),
+            texture: Texture::new().empty_text(size),
         }
     }
 }

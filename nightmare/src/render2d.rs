@@ -6,10 +6,11 @@ use crate::vertexpointers::{VertexPointers, ToVertexPointers, Location, ParamCou
 use crate::render::instanced_draw;
 use crate::{Vao, Vbo, Context, Result, Rect};
 
-pub const VERTEX_SHADER: &[u8] = include_bytes!("shader.vert");
-pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader.frag");
+pub const VERTEX_SHADER: &[u8] = include_bytes!("shader2d.vert");
+pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader2d.frag");
 
 #[repr(C)]
+#[derive(Debug)]
 pub struct Model {
     // #[location = 3]
     // #[gl_type = "f32"]
@@ -17,8 +18,6 @@ pub struct Model {
     pub mat: Matrix4<f32>,
 
     pub texture_rect: Rect,
-    // pub texture_position: Position,
-    // pub texture_size: Size,
 }
 
 impl Model {
@@ -51,14 +50,6 @@ impl ToVertexPointers for Model {
             Some(Divisor(1))
         );
         
-        // // Texture size
-        // vp.add::<Self>(
-        //     Location(8),
-        //     ParamCount(2),
-        //     GlType::Float,
-        //     false,
-        //     Some(Divisor(1))
-        // );
     }
 }
 

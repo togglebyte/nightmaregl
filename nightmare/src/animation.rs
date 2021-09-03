@@ -85,6 +85,7 @@ impl Animation {
             fps: 10.0,
             elapsed: 0.,
         }
+
     }
 
     /// Update the time of the animation.

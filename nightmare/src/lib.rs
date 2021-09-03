@@ -15,7 +15,7 @@ pub mod shaders;
 pub mod texture;
 
 #[cfg(feature = "eventloop")] pub mod events;
-// #[cfg(feature = "text")] pub mod text;
+#[cfg(feature = "text")] pub mod text;
 #[cfg(feature = "extras")] pub mod extras;
 
 pub use errors::Result;
@@ -60,6 +60,14 @@ impl Rect {
 
     pub fn set_size(&mut self, size: Size) {
         self.1 = size;
+    }
+
+    pub fn origin(&self) -> Position {
+        self.0
+    }
+
+    pub fn size(&self) -> Size {
+        self.1
     }
 }
 
