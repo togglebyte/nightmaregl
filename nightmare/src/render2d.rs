@@ -4,7 +4,7 @@ use nalgebra::Matrix4;
 use crate::shaders::{ShaderProgram, Shader};
 use crate::vertexpointers::{VertexPointers, ToVertexPointers, Location, ParamCount, Divisor, GlType};
 use crate::render::instanced_draw;
-use crate::{Vao, Vbo, Context, Result, Position, Size, Rect};
+use crate::{Vao, Vbo, Context, Result, Rect};
 
 pub const VERTEX_SHADER: &[u8] = include_bytes!("shader.vert");
 pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader.frag");

@@ -1,9 +1,7 @@
 // #![deny(missing_docs)]
-use std::ops::{MulAssign, Div};
-
 use nalgebra::{Point3, Vector3};
 
-use crate::{Position, Rotation, Vector, Sprite, Matrix, Transform};
+use crate::{Sprite, Matrix, Transform};
 
 //// TODO: add a function to convert a Matrix4<T> into a Transform<T>
 //#[derive(Debug, Copy, Clone)]

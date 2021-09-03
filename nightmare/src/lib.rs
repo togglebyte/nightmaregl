@@ -1,4 +1,4 @@
-// mod animation;
+mod animation;
 mod color;
 mod context;
 mod sprite;
@@ -20,7 +20,7 @@ pub mod texture;
 
 pub use errors::Result;
 
-// pub use animation::Animation;
+pub use animation::Animation;
 pub use color::Color;
 pub use color::Colour;
 pub use context::{Context, Vao, Vbo};
@@ -44,7 +44,7 @@ pub type Matrix = nalgebra::Matrix4<f32>;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone)]
-pub struct Rect(Vector, Vector);
+pub struct Rect(pub Position, pub Size);
 
 impl Rect {
     pub fn new(x: f32, y: f32, width: f32, height: f32) -> Self {
@@ -52,6 +52,14 @@ impl Rect {
             Vector::new(x, y),
             Vector::new(width, height),
         )
+    }
+
+    pub fn set_origin(&mut self, pos: Position) {
+        self.0 = pos;
+    }
+
+    pub fn set_size(&mut self, size: Size) {
+        self.1 = size;
     }
 }
 

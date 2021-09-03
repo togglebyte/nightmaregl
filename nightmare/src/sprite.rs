@@ -1,8 +1,6 @@
 #![deny(missing_docs)]
-use std::ops::{Div, MulAssign};
-
 use crate::texture::Texture;
-use crate::{Point, Position, Size, Vector, Matrix, Rect};
+use crate::{Position, Size, Rect};
 
 /// Tiling mode. Either stretch or tiling
 #[derive(Debug, Copy, Clone)]
@@ -37,7 +35,16 @@ pub struct Sprite {
     /// The size of the sprite
     pub size: Size,
     /// A rectangle representing the area
-    /// of a texture to render.
+    /// of a texture to render, where 0,0 is the top left corner,
+    /// and 1.0, 1.0 is the bottom right
+    ///
+    /// ```text
+    ///  ______
+    /// |0,0   |
+    /// |      |
+    /// |___1,1|
+    /// 
+    /// ```
     pub texture_rect: Rect,
     /// The anchor point of the sprite.
     /// To rotate a sprite around its centre set the anchor
@@ -70,7 +77,7 @@ impl Sprite {
         Self {
             size: texture_size,
             texture_size,
-            texture_rect: Rect::new(0.0, 0.0, texture_size.x, texture_size.y),
+            texture_rect: Rect::new(0.0, 0.0, 1.0, 1.0),
             anchor: Position::zeros(),
             z_index: 50,
             fill: FillMode::Stretch,

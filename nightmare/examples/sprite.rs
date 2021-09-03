@@ -34,9 +34,7 @@ fn main() -> Result<()> {
     //       around the middle.
     // -----------------------------------------------------------------------------
     let texture = Texture::from_disk("examples/buny.png")?;
-    let texture = Texture::from_disk("examples/square.png")?;
     let mut sprite = Sprite::new(&texture);
-    sprite.texture_rect = Rect::new(0.0, 0.0, 0.5, 0.5);
 
     sprite.size = Size::new(sprite.size.x * 4.0, sprite.size.y * 4.0);
     sprite.anchor = (sprite.size / 2.0f32);

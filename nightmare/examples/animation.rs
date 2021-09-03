@@ -3,7 +3,7 @@ use nightmare::texture::Texture;
 use nightmare::render2d::{Model, SimpleRenderer};
 use nightmare::{
     Animation, Color, Context, Position, Result, create_model_matrix,
-    Rotation, Size, Sprite, Transform, Viewport, VertexData,
+    Rotation, Size, Sprite, Transform, Viewport, VertexData, Rect
 };
 
 fn main() -> Result<()> {
@@ -11,31 +11,36 @@ fn main() -> Result<()> {
     let eventloop = EventLoop::<()>::new(el);
 
     let window_size = context.window_size();
-    let viewport = Viewport::new(Position::zero(), window_size);
+    let viewport = Viewport::new(Position::zeros(), window_size);
     let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
 
-    let texture = Texture::<f32>::from_disk("examples/anim.png")?;
+    let texture = Texture::from_disk("examples/anim.png")?;
+    let mut sprite = Sprite::new(&texture);
+    sprite.size = Size::new(sprite.size.x / 3.0 * 4.0, sprite.size.y * 4.0);
+    // sprite.texture_rect = Rect::new(0.0, 0.0, 1.0 / 3.0, 1.0);
 
-    let mut animation = Animation::from_texture(&texture, 1, 3, 32, 40);
+    let mut animation = Animation::from_sprite(sprite, 1, 3, 32, 40);
     animation.fps = 4.0;
     animation.repeat = true;
     let mut size = animation.sprite.size;
-    animation.sprite.size = Size::new(size.width * 4.0, size.height * 4.0);
 
-    let mut transform = Transform::default();
-    let position = (*viewport.size() / 2).to_vector();
-    transform.translate_mut(position.to_f32());
+    let mut transform = Transform::from_parts(
+        viewport.centre().into(),
+        Rotation::new(0.0).into(),
+        1.0,
+    );
 
     let now = std::time::Instant::now();
+
     eventloop.run(move |event| {
         match event {
             Event::Draw(dt) => {
                 context.clear(Color::grey());
                 let t = now.elapsed().as_secs_f32();
 
-                transform.rotate_mut(Rotation::radians(t.sin()));
-                let model_matrix = create_model_matrix(&animation.sprite, &transform);
-                let model = Model::new(model_matrix);
+                // transform.rotate_mut(Rotation::radians(t.sin()));
+                let model_matrix = create_model_matrix(&sprite, &transform);
+                let model = Model::new(model_matrix, animation.sprite.texture_rect);
                 renderer.load_data(&[model], &mut context);
                 renderer.render_instanced(&mut context, 1);
 

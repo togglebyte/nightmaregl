@@ -1,11 +1,6 @@
 #![deny(missing_docs)]
-use std::ops::{Div, MulAssign};
-
-use nalgebra::Scalar;
-
 use crate::sprite::Sprite;
-use crate::texture::Texture;
-use crate::{Point, Rect, Size};
+use crate::{Position, Rect};
 
 /// Represent a sprite as an animation.
 ///
@@ -33,7 +28,7 @@ use crate::{Point, Rect, Size};
 /// assert_eq!(animation.current_frame(), 2);
 /// ```
 #[derive(Debug, Copy, Clone)]
-pub struct Animation<T> {
+pub struct Animation {
     cols: u16,
     stride_w: u16,
     stride_h: u16,
@@ -42,38 +37,42 @@ pub struct Animation<T> {
     /// Should this animation repeat forever?
     pub repeat: bool,
     /// The sprite the animation is acting upon
-    pub sprite: Sprite<T>,
+    pub sprite: Sprite,
     /// Number of frames per second
     pub fps: f32,
     elapsed: f32,
 }
 
-impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> Animation<T> {
-    /// Document me not for I shall not be here long...
-    pub fn from_texture(
-        texture: &Texture<T>,
-        rows: u16,
-        cols: u16,
-        stride_w: u16,
-        stride_h: u16,
-    ) -> Self {
-        let mut sprite = Sprite::new(texture);
-        sprite.texture_rect = Rect::new(Point::zero(), Size::new(stride_w, stride_h).cast());
-        sprite.size = Size::new(stride_w, stride_h).cast();
-        Self::from_sprite(sprite, rows, cols, stride_w, stride_h)
-    }
+impl Animation {
+    // /// Document me not for I shall not be here long...
+    // pub fn from_texture(
+    //     texture: &Texture,
+    //     rows: f32,
+    //     cols: f32,
+    //     stride_w: f32,
+    //     stride_h: f32,
+    // ) -> Self {
+    //     let mut sprite = Sprite::new(texture);
+    //     sprite.texture_rect = Rect::new(0.0, 0,0, stride_w as f32, stride_h as f32),
+    //     sprite.size = Size::new(stride_w as f32, stride_h as f32);
+    //     Self::from_sprite(sprite, rows, cols, stride_w, stride_h)
+    // }
 
     /// Create a new animations, where `stride` is the distance between
     /// frames. This means that a sprite sheet has to contain frames that are all
     /// of the same size.
     pub fn from_sprite(
-        sprite: Sprite<T>,
+        mut sprite: Sprite,
         rows: u16,
         cols: u16,
         stride_w: u16,
         stride_h: u16,
     ) -> Self {
         let max_frame = rows * cols;
+        let width = stride_w as f32 / sprite.texture_size.x;
+        let height = stride_h as f32 / sprite.texture_size.y;
+
+        sprite.texture_rect = Rect::new(0.0, 0.0, width, height);
 
         Self {
             cols,
@@ -117,8 +116,12 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
         let x = self.current_frame % self.cols;
         let y = self.current_frame / self.cols;
 
-        let offset = Point::new(x * self.stride_w, y * self.stride_h).cast();
-        self.sprite.texture_rect.origin = offset;
+        let offset = Position::new(
+            self.stride_w as f32 / self.sprite.texture_size.x * x as f32,
+            self.stride_h as f32 / self.sprite.texture_size.y * y as f32,
+        );
+
+        self.sprite.texture_rect.set_origin(offset);
     }
 }
 

@@ -1,6 +1,5 @@
 #![deny(missing_docs)]
 use gl33::global_loader::*;
-use nalgebra::Scalar;
 
 use crate::{Position, Size, Matrix};
 

@@ -73,7 +73,6 @@ fn main() -> Result<()> {
                 // Get the vertex data for the buny sprite
                 let bunny_model = create_model_matrix(&buny_sprite, &buny_transform);
                 let model = Model::new(bunny_model);
-                eprintln!("{}", bunny_model);
 
                 // Render the buny
                 buny.bind();
