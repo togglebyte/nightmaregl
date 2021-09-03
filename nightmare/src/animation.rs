@@ -2,8 +2,6 @@
 use std::ops::{Div, MulAssign};
 
 use nalgebra::Scalar;
-use num_traits::cast::NumCast;
-use num_traits::Zero;
 
 use crate::sprite::Sprite;
 use crate::texture::Texture;

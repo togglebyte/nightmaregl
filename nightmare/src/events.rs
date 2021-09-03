@@ -63,7 +63,7 @@ pub enum Event<T> {
     Draw(f32),
 
     /// Window was resized.
-    Resize(Size<u32>),
+    Resize(Size),
 
     /// Custom user event
     UserEvent(T),
@@ -151,7 +151,7 @@ impl<T> EventLoop<T> {
                         event_handler(Event::MouseButton { state, button })
                     }
                     WindowEvent::Resized(new_size) => {
-                        event_handler(Event::Resize(Size::new(new_size.width, new_size.height)))
+                        event_handler(Event::Resize(Size::new(new_size.width as f32, new_size.height as f32)))
                     }
                     WindowEvent::CloseRequested => {
                         *control_flow = ControlFlow::Exit;

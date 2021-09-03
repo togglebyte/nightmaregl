@@ -4,6 +4,7 @@ use nightmare::render2d::{Model, SimpleRenderer};
 use nightmare::{
     Color, Context, Position, Result, create_model_matrix,
     Rotation, Size, Sprite, Transform, Viewport, VertexData,
+    Scale, Vector, Rect
 };
 
 fn main() -> Result<()> {
@@ -22,8 +23,8 @@ fn main() -> Result<()> {
     //     - Renderer and Viewport -
     // -----------------------------------------------------------------------------
     let window_size = context.window_size();
-    let mut viewport = Viewport::new(Position::zero(), window_size);
-    let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
+    let mut viewport = Viewport::new(Position::zeros(), window_size);
+    let mut renderer = SimpleRenderer::<Model>::new(&mut context, viewport.view_projection())?;
 
     // -----------------------------------------------------------------------------
     //     - Create a sprite -
@@ -33,13 +34,18 @@ fn main() -> Result<()> {
     //       around the middle.
     // -----------------------------------------------------------------------------
     let texture = Texture::from_disk("examples/buny.png")?;
+    let texture = Texture::from_disk("examples/square.png")?;
     let mut sprite = Sprite::new(&texture);
+    sprite.texture_rect = Rect::new(0.0, 0.0, 0.5, 0.5);
 
-    sprite.anchor = (sprite.size / 2.0f32).to_vector();
-    sprite.size = Size::new(sprite.size.width * 4.0, sprite.size.height * 4.0);
+    sprite.size = Size::new(sprite.size.x * 4.0, sprite.size.y * 4.0);
+    sprite.anchor = (sprite.size / 2.0f32);
 
-    let mut transform = Transform::default();
-    transform.translate_mut(viewport.centre().to_f32());
+    let mut transform = Transform::from_parts(
+        viewport.centre().into(),
+        Rotation::new(0.0).into(),
+        1.0,
+    );
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -53,19 +59,23 @@ fn main() -> Result<()> {
                 // Clear the screen
                 context.clear(Color::grey());
 
-                // Move the sprite a bit...
-                let mut new_pos = viewport.centre().cast::<f32>();
+                // Sprite position
+                let mut new_pos = viewport.centre();
                 new_pos += Position::new(t.sin(), t.cos()) * 200.0;
-                new_pos -= Position::new(sprite.size.width, sprite.size.height);
-                transform.translate_mut(new_pos);
+                transform.isometry.translation = new_pos.into();
 
-                // ... and rotate it
-                transform.rotate_mut(Rotation::radians(t / 1.0));
+                // Sprite rotation
+                let rot = Rotation::new(t / 1.0);
+                transform.isometry.rotation = rot.into();
 
+                // Create the model matrix
                 let model_matrix = create_model_matrix(&sprite, &transform);
 
-                let model = Model::new(model_matrix);
+                // The vertex data (aka Model)
+                let model = Model::new(model_matrix, sprite.texture_rect);
                 renderer.load_data(&[model], &mut context);
+
+                // Render the buny
                 renderer.render_instanced(&mut context, 1);
 
                 context.swap_buffers();
@@ -80,4 +90,6 @@ fn main() -> Result<()> {
 
         LoopAction::Continue
     });
+
+    Ok(())
 }

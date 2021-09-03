@@ -12,11 +12,9 @@ extras = []
 
 [dependencies]
 bytemuck = { version = "1.5.1", features = ["derive"] }
-euclid = "0.22.2"
 gl33 = { version = "0.2.1", features = ["global_loader"] }
 glutin = "0.26.0"
 log = "0.4.14"
-num-traits = "0.2.14"
 png = "0.16.8"
 proc-macro2 = "1.0.28"
 quote = "1.0.9"

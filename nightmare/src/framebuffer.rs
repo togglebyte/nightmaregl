@@ -15,7 +15,6 @@
 //! ```
 use gl33::global_loader::*;
 use gl33::*;
-use num_traits::cast::NumCast;
 
 use crate::Texture;
 
@@ -99,7 +98,7 @@ impl Framebuffer {
     }
 
     /// Attach a texture to this frame buffer to render to.
-    pub fn attach_texture<T: Copy + NumCast>(&mut self, texture: &Texture<T>) {
+    pub fn attach_texture(&mut self, texture: &Texture) {
         self.bind();
         texture.bind();
 

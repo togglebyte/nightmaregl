@@ -2,7 +2,6 @@
 use std::mem::size_of;
 use std::marker::PhantomData;
 
-use num_traits::cast::NumCast;
 use gl33::global_loader::*;
 use gl33::*;
 use glutin::event_loop::EventLoop;
@@ -83,7 +82,7 @@ pub struct ContextBuilder {
     title: String,
     vsync: bool,
     hardware_acceleration: bool,
-    size: Option<Size<i32>>,
+    size: Option<Size>,
     resizable: bool,
     maximized: bool,
     visible: bool,
@@ -119,7 +118,7 @@ impl ContextBuilder {
     }
 
     /// Set inner size of the window
-    pub fn with_size(&mut self, size: Size<i32>) -> &mut Self {
+    pub fn with_size(&mut self, size: Size) -> &mut Self {
         self.size = Some(size);
         self
     }
@@ -216,8 +215,8 @@ impl ContextBuilder {
         // Window size
         if let Some(size) = self.size {
             let size = glutin::dpi::PhysicalSize {
-                width: size.width,
-                height: size.height
+                width: size.x,
+                height: size.y
             };
             window_builder = window_builder.with_inner_size(size);
         }
@@ -297,9 +296,9 @@ impl Context {
 
     /// Get the current window size.
     /// Useful when creating a [Viewport](crate::Viewport).
-    pub fn window_size<T : Copy + NumCast>(&self) -> Size<T> {
+    pub fn window_size(&self) -> Size {
         let size = self.inner.window().inner_size();
-        Size::new(size.width, size.height).cast()
+        Size::new(size.width as f32, size.height as f32)
     }
 
     /// Get the current window handle

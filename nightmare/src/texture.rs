@@ -7,7 +7,6 @@ use std::path::Path;
 
 use gl33::global_loader::*;
 use gl33::*;
-use num_traits::cast::NumCast;
 use png::{ColorType, Decoder, OutputInfo};
 use bytemuck::Pod;
 
@@ -110,25 +109,23 @@ impl TextureBuilder<NoFormat> {
 
     /// One bit aligned, red channel only texture.
     #[cfg(feature="text")]
-    pub(crate) fn empty_text<T: Copy + NumCast>(self, size: impl Into<Size<T>>) -> Texture<T> {
+    pub(crate) fn empty_text(self, size: impl Into<Size>) -> Texture {
         let size = size.into();
         let format = Format::Red;
 
         unsafe {
-            let size = size.to_i32();
-
             // Set alignment to one
             glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
             // Fill the texture with black pixels
-            let black = vec![0u8; size.width as usize * size.height as usize];
+            let black = vec![0u8; size.x as usize * size.y as usize];
 
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0, // Level,
                 format.to_internal_format(),
-                size.width,
-                size.height,
+                size.x as i32,
+                size.y as i32,
                 0, // Border
                 format.to_format(),
                 GL_UNSIGNED_BYTE,
@@ -171,11 +168,12 @@ impl TextureBuilder<Format> {
     ///     .with_data(data, Size::new(32, 32));
     /// # }
     /// ```
-    pub fn with_data<T: Copy + NumCast>(self, data: &[u8], size: impl Into<Size<T>>) -> Texture<T> {
-        let size = size.into().to_i32();
+    pub fn with_data(self, data: &[u8], size: impl Into<Size>) -> Texture {
+        let size = size.into();
+
         debug_assert_eq!(
             data.len(),
-            size.width as usize * size.height as usize * self.1.size()
+            size.x as usize * size.y as usize * self.1.size()
         );
 
         unsafe {
@@ -183,8 +181,8 @@ impl TextureBuilder<Format> {
                 GL_TEXTURE_2D,
                 0, // Level,
                 self.1.to_internal_format(),
-                size.width,
-                size.height,
+                size.x as i32,
+                size.y as i32,
                 0, // Border
                 self.1.to_format(),
                 GL_UNSIGNED_BYTE,
@@ -208,16 +206,16 @@ impl TextureBuilder<Format> {
 
     /// This should probably only ever be used as a framebuffer texture.
     /// Because this could contain rubbish data since it's not using initialized values.
-    pub fn with_no_data<T: Copy + NumCast>(self, size: impl Into<Size<T>>) -> Texture<T> {
-        let size = size.into().to_i32();
+    pub fn with_no_data(self, size: impl Into<Size>) -> Texture {
+        let size = size.into();
 
         unsafe {
             glTexImage2D(
                 GL_TEXTURE_2D,
                 0, // Level,
                 self.1.to_internal_format(),
-                size.width,
-                size.height,
+                size.x as i32,
+                size.y as i32,
                 0, // Border
                 self.1.to_format(),
                 GL_UNSIGNED_BYTE,
@@ -254,13 +252,13 @@ impl TextureBuilder<Format> {
 /// # }
 /// ```
 #[derive(Debug)]
-pub struct Texture<T: Copy + NumCast> {
+pub struct Texture {
     id: u32,
-    pub(crate) size: Size<T>,
+    pub(crate) size: Size,
     format: Format,
 }
 
-impl<T: Copy + NumCast> Texture<T> {
+impl Texture {
     /// Create a [TextureBuilder](crate::texture::TextureBuilder).
     pub fn new() -> TextureBuilder<NoFormat> {
         TextureBuilder::new()
@@ -287,7 +285,7 @@ impl<T: Copy + NumCast> Texture<T> {
 
     /// Create a texure with some default data.
     /// Assumes RGBA.
-    pub fn default_with_data(size: impl Into<Size<T>>, data: &[u8]) -> Texture<T> {
+    pub fn default_with_data(size: impl Into<Size>, data: &[u8]) -> Texture {
         let builder = TextureBuilder::new().with_format(Format::Rgba);
         builder.with_data(data, size)
     }
@@ -346,33 +344,30 @@ impl<T: Copy + NumCast> Texture<T> {
     }
 
     /// Get the size of the texture.
-    pub fn size(&self) -> Size<T> {
+    pub fn size(&self) -> Size {
         self.size
     }
 
     /// Write data to a region of a texture
-    pub fn write_region(&self, position: Position<T>, size: Size<T>, data: &[u8]) {
+    pub fn write_region(&self, position: Position, size: Size, data: &[u8]) {
         self.bind();
 
         debug_assert!(
-            data.len() <= size.cast::<usize>().width * size.cast::<usize>().height * self.format.size()
+            data.len() <= size.x as usize * size.y as usize * self.format.size()
         );
 
         if let Format::Red = self.format {
             unsafe { self.align_for_write() };
         }
 
-        let position = position.to_i32();
-        let size = size.to_i32();
-
         unsafe {
             glTexSubImage2D(
                 GL_TEXTURE_2D,
                 0, // Level,
-                position.x,
-                position.y,
-                size.width,
-                size.height,
+                position.x as i32,
+                position.y as i32,
+                size.x as i32,
+                size.y as i32,
                 self.format.to_format(),
                 GL_UNSIGNED_BYTE,
                 data.as_ptr().cast(),
@@ -386,10 +381,7 @@ impl<T: Copy + NumCast> Texture<T> {
 
     /// Read pixels out of a texture.
     pub fn get_pixels<U: bytemuck::Pod>(&self) -> Pixels<U> {
-        let cap = {
-            let size = self.size.cast::<usize>();
-            size.width * size.height
-        };
+        let cap = (self.size.x * self.size.y) as usize;
 
         let mut output_buf: Vec<U> = Vec::with_capacity(cap);
 
@@ -447,8 +439,8 @@ impl<T: Copy + NumCast> Texture<T> {
 
         // Create an OpenGL texture associated
         // with the sprite.
-        let size = Size::new(info.width, info.height).cast::<T>();
-        let texture = Texture::<T>::new()
+        let size = Size::new(info.width as f32, info.height as f32);
+        let texture = Texture::new()
             .with_format(format)
             .with_data(&bytes, size);
 
@@ -457,14 +449,13 @@ impl<T: Copy + NumCast> Texture<T> {
 
     /// Write a texture to disk.
     pub fn write_to_disk<U: Pod, V: AsRef<Path>>(&self, dst: V) -> Result<()> {
-        let size = self.size.to_i32();
+        let size = self.size;
         let output_buf = self.get_pixels::<U>();
 
 
         let file = File::create(dst.as_ref())?;
         let mut writer = BufWriter::new(file);
-        let size = size.to_u32();
-        let mut encoder = png::Encoder::new(&mut writer, size.width, size.height as u32);
+        let mut encoder = png::Encoder::new(&mut writer, size.x as u32, size.y as u32);
 
         match self.format {
             Format::Rgba => encoder.set_color(png::ColorType::RGBA),
@@ -482,7 +473,7 @@ impl<T: Copy + NumCast> Texture<T> {
 // -----------------------------------------------------------------------------
 //     - Drop texture -
 // -----------------------------------------------------------------------------
-impl<T: Copy + NumCast> Drop for Texture<T> {
+impl Drop for Texture {
     fn drop(&mut self) {
         #[cfg(not(test))]
         unsafe {

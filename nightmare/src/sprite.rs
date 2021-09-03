@@ -1,12 +1,8 @@
 #![deny(missing_docs)]
 use std::ops::{Div, MulAssign};
 
-use nalgebra::{Matrix4, Scalar, Point3, Vector as NalVector};
-use num_traits::cast::NumCast;
-use num_traits::Zero;
-
 use crate::texture::Texture;
-use crate::{Point, Position, Rect, Size};
+use crate::{Point, Position, Size, Vector, Matrix, Rect};
 
 /// Tiling mode. Either stretch or tiling
 #[derive(Debug, Copy, Clone)]
@@ -35,18 +31,18 @@ pub enum FillMode {
 /// # }
 /// ```
 #[derive(Debug, Copy, Clone)]
-pub struct Sprite<T> {
+pub struct Sprite {
     // The texture size of the sprite
-    pub(crate) texture_size: Size<T>,
+    pub(crate) texture_size: Size,
     /// The size of the sprite
-    pub size: Size<T>,
+    pub size: Size,
     /// A rectangle representing the area
     /// of a texture to render.
-    pub texture_rect: Rect<T>,
+    pub texture_rect: Rect,
     /// The anchor point of the sprite.
     /// To rotate a sprite around its centre set the anchor
     /// to be half the size of the sprite.
-    pub anchor: Position<T>,
+    pub anchor: Position,
     /// The order in which this sprite appears.
     /// If a sprite has a lower `z_index` than another sprite it will
     /// be drawn above it. Note however that for alpha values to work
@@ -56,11 +52,11 @@ pub struct Sprite<T> {
     pub fill: FillMode,
 }
 
-impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> Sprite<T> {
+impl Sprite {
     /// Create a new sprite that has the size of the texture by default.
     /// To set the sprite to only show a portion of a texture set the
     /// `texture_rect` value.
-    pub fn new(texture: &Texture<T>) -> Self {
+    pub fn new(texture: &Texture) -> Self {
         let texture_size = texture.size;
         Self::from_size(texture_size)
     }
@@ -70,12 +66,12 @@ impl<T: Copy + NumCast + Zero + MulAssign + Default + Scalar + Div<Output = T>> 
     /// prone to human errors.
     ///
     /// However this is very useful for testing purposes.
-    pub fn from_size(texture_size: Size<T>) -> Sprite<T> {
+    pub fn from_size(texture_size: Size) -> Sprite {
         Self {
             size: texture_size,
             texture_size,
-            texture_rect: Rect::new(Point::zero(), texture_size.cast()),
-            anchor: Position::zero(),
+            texture_rect: Rect::new(0.0, 0.0, texture_size.x, texture_size.y),
+            anchor: Position::zeros(),
             z_index: 50,
             fill: FillMode::Stretch,
         }

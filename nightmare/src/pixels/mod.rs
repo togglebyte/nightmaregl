@@ -44,14 +44,14 @@ pub use region::{Region, RegionMut};
 #[derive(Debug)]
 pub struct Pixels<T: Pod> {
     inner: Vec<T>,
-    size: Size<usize>,
+    size: Size,
 }
 
 impl<T: Pod> Pixels<T> {
     /// Create new `Pixels`.
-    pub fn new(inner: impl Into<Vec<T>>, size: Size<usize>) -> Self {
+    pub fn new(inner: impl Into<Vec<T>>, size: Size) -> Self {
         let inner = inner.into();
-        debug_assert!(inner.len() == size.width * size.height);
+        debug_assert!(inner.len() as f32 == size.x * size.y);
 
         Self { 
            inner,
@@ -60,10 +60,10 @@ impl<T: Pod> Pixels<T> {
     }
 
     /// Repeat the pixel width * height times.
-    pub fn from_pixel(pixel: T, size: Size<usize>) -> Self {
-        let cap = size.width * size.height;
+    pub fn from_pixel(pixel: T, size: Size) -> Self {
+        let cap = size.x * size.y;
         Self { 
-            inner: vec![pixel; cap],
+            inner: vec![pixel; cap as usize],
             size,
         }
     }
@@ -75,24 +75,24 @@ impl<T: Pod> Pixels<T> {
 
     /// Get the size of the pixel buffer
     /// as a width and a height.
-    pub fn size(&self) -> Size<usize> {
+    pub fn size(&self) -> Size {
         self.size
     }
 
     /// Get an iterator over a region.
     pub fn region(
         &self,
-        position: Position<usize>,
-        size: Size<usize>,
+        position: Position,
+        size: Size,
     ) -> Region<T> {
-        debug_assert!(self.size.width >= size.width + position.x);
-        debug_assert!(self.size.height >= size.height + position.y);
+        debug_assert!(self.size.x >= size.x + position.x);
+        debug_assert!(self.size.y >= size.y + position.y);
 
         let region = self
-            .chunks_exact(self.size.width)
-            .skip(position.y)
-            .take(size.height)
-            .map(|c| &c[position.x..size.width + position.x])
+            .chunks_exact(self.size.x as usize)
+            .skip(position.y as usize)
+            .take(size.y as usize)
+            .map(|c| &c[position.x as usize..size.x as usize + position.x as usize])
             .collect::<Vec<_>>();
 
         Region { inner: region }
@@ -101,18 +101,18 @@ impl<T: Pod> Pixels<T> {
     /// Get an iterator over a region
     pub fn region_mut(
         &mut self,
-        position: Position<usize>,
-        size: Size<usize>,
+        position: Position,
+        size: Size,
     ) -> RegionMut<T> {
-        debug_assert!(self.size.width >= size.width + position.x);
-        debug_assert!(self.size.height >= size.height + position.y);
+        debug_assert!(self.size.x >= size.x + position.x);
+        debug_assert!(self.size.y >= size.y + position.y);
 
-        let width = self.size.width;
+        let width = self.size.x;
         let region = self
-            .chunks_exact_mut(width)
-            .skip(position.y)
-            .take(size.height)
-            .map(|c| &mut c[position.x..size.width + position.x])
+            .chunks_exact_mut(width as usize)
+            .skip(position.y as usize)
+            .take(size.y as usize)
+            .map(|c| &mut c[position.x as usize..size.x as usize + position.x as usize])
             .collect::<Vec<_>>();
 
         RegionMut { inner: region }
@@ -121,13 +121,13 @@ impl<T: Pod> Pixels<T> {
     /// Write a region of pixels
     pub fn write_region(
         &mut self,
-        position: Position<usize>,
+        position: Position,
         region: Region<T>,
     ) {
 
         for (i, row) in region.rows().enumerate() {
-            let y = (position.y + i) * self.size.width;
-            let index = y + position.x;
+            let y = ((position.y + i as f32) * self.size.x) as usize;
+            let index = y + position.x as usize;
             let dest = &mut self.inner[index..index + row.len()];
             dest.copy_from_slice(row);
         }
@@ -135,11 +135,11 @@ impl<T: Pod> Pixels<T> {
     }
 
     /// Insert a pixel at a given location.
-    pub fn insert_pixel(&mut self, pos: Position<usize>, pixel: T) {
-        debug_assert!(pos.x <= self.size.width);
-        debug_assert!(pos.y <= self.size.height);
-        let index = pos.y * self.size.width + pos.x;
-        self.inner[index] = pixel;
+    pub fn insert_pixel(&mut self, pos: Position, pixel: T) {
+        debug_assert!(pos.x <= self.size.x);
+        debug_assert!(pos.y <= self.size.y);
+        let index = pos.y * self.size.x + pos.x;
+        self.inner[index as usize] = pixel;
     }
 }
 

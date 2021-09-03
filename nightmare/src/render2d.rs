@@ -4,7 +4,10 @@ use nalgebra::Matrix4;
 use crate::shaders::{ShaderProgram, Shader};
 use crate::vertexpointers::{VertexPointers, ToVertexPointers, Location, ParamCount, Divisor, GlType};
 use crate::render::instanced_draw;
-use crate::{Vao, Vbo, Context, Result};
+use crate::{Vao, Vbo, Context, Result, Position, Size, Rect};
+
+pub const VERTEX_SHADER: &[u8] = include_bytes!("shader.vert");
+pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader.frag");
 
 #[repr(C)]
 pub struct Model {
@@ -12,12 +15,17 @@ pub struct Model {
     // #[gl_type = "f32"]
     // #[divisor = 1]
     pub mat: Matrix4<f32>,
+
+    pub texture_rect: Rect,
+    // pub texture_position: Position,
+    // pub texture_size: Size,
 }
 
 impl Model {
-    pub fn new(mat: Matrix4<f32>) -> Self {
+    pub fn new(mat: Matrix4<f32>, texture_rect: Rect) -> Self {
         Self {
             mat,
+            texture_rect,
         }
     }
 }
@@ -33,6 +41,24 @@ impl ToVertexPointers for Model {
                 Some(Divisor(1))
             );
         }
+
+        // Texture rect
+        vp.add::<Self>(
+            Location(7),
+            ParamCount(4),
+            GlType::Float,
+            false,
+            Some(Divisor(1))
+        );
+        
+        // // Texture size
+        // vp.add::<Self>(
+        //     Location(8),
+        //     ParamCount(2),
+        //     GlType::Float,
+        //     false,
+        //     Some(Divisor(1))
+        // );
     }
 }
 
@@ -87,8 +113,6 @@ pub const QUAD: [Vertex; 4] = [
     },
 ];
 
-pub const VERTEX_SHADER: &[u8] = include_bytes!("shader.vert");
-pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader.frag");
 
 pub struct Render2d {
     pub shader_program: ShaderProgram,

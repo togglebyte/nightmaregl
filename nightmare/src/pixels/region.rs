@@ -10,11 +10,11 @@ use crate::Position;
 /// use nightmaregl::pixels::{Pixel, Pixels};
 /// use nightmaregl::{Position, Size};
 ///
-/// let size = Size::new(6, 6);
+/// let size = Size::new(6.0, 6.0);
 /// let green = Pixel { g: 255, ..Default::default() };
 /// let pixels = Pixels::from_pixel(green, size);
 ///
-/// let region = pixels.region(Position::new(2, 2), Size::new(3, 3));
+/// let region = pixels.region(Position::new(2.0, 2.0), Size::new(3.0, 3.0));
 ///
 /// // . . . . . .
 /// // . . . . . .
@@ -34,11 +34,11 @@ impl<'a, T> Region<'a, T> {
     }
 }
 
-impl<'a, T> Index<Position<usize>> for Region<'a, T> {
+impl<'a, T> Index<Position> for Region<'a, T> {
     type Output = T;
 
-    fn index(&self, pos: Position<usize>) -> &Self::Output {
-        &self.inner[pos.y][pos.x]
+    fn index(&self, pos: Position) -> &Self::Output {
+        &self.inner[pos.y as usize][pos.x as usize]
     }
 }
 
@@ -86,11 +86,11 @@ pub struct RegionMut<'a, T> {
     pub(super) inner: Vec<&'a mut[T]>
 }
 
-impl<'a, T> Index<Position<usize>> for RegionMut<'a, T> {
+impl<'a, T> Index<Position> for RegionMut<'a, T> {
     type Output = T;
 
-    fn index(&self, pos: Position<usize>) -> &Self::Output {
-        &self.inner[pos.y][pos.x]
+    fn index(&self, pos: Position) -> &Self::Output {
+        &self.inner[pos.y as usize][pos.x as usize]
     }
 }
 
@@ -102,9 +102,9 @@ impl<'a, T> Index<(usize, usize)> for RegionMut<'a, T> {
     }
 }
 
-impl<'a, T> IndexMut<Position<usize>> for RegionMut<'a, T> {
-    fn index_mut(&mut self, pos: Position<usize>) -> &mut Self::Output {
-        &mut self.inner[pos.y][pos.x]
+impl<'a, T> IndexMut<Position> for RegionMut<'a, T> {
+    fn index_mut(&mut self, pos: Position) -> &mut Self::Output {
+        &mut self.inner[pos.y as usize][pos.x as usize]
     }
 }
 
@@ -133,13 +133,13 @@ mod test {
             p!( 8), p!( 9), p!(10), p!(11),
             p!(12), p!(13), p!(14), p!(15),
         ];
-        let mut pixels = Pixels::new(pixels, Size::new(4, 4));
+        let mut pixels = Pixels::new(pixels, Size::new(4.0, 4.0));
         let row_width = 4;
         for i in 0..row_width * 4 {
             pixels[i] = Pixel { r: i as u8, ..Default::default() };
         }
 
-        let region = pixels.region(Position::new(1, 1), Size::new(2, 2));
+        let region = pixels.region(Position::new(1.0, 1.0), Size::new(2.0, 2.0));
 
         let mut rows = region.rows();
         assert_eq!(rows.next().unwrap(), vec![p!(5), p!(6)].as_slice());
@@ -162,11 +162,11 @@ mod test {
             p!(0), p!(0), p!(0), p!(0),
         ];
 
-        let mut to_pixels = Pixels::new(to, Size::new(4, 4));
-        let from_pixels = Pixels::new(from, Size::new(4, 4));
+        let mut to_pixels = Pixels::new(to, Size::new(4.0, 4.0));
+        let from_pixels = Pixels::new(from, Size::new(4.0, 4.0));
 
-        let position = Position::new(0, 1);
-        let region = from_pixels.region(position, Size::new(3, 2));
+        let position = Position::new(0.0, 1.0);
+        let region = from_pixels.region(position, Size::new(3.0, 2.0));
         to_pixels.write_region(position, region);
 
         assert_eq!(from_pixels.as_bytes(), to_pixels.as_bytes());
