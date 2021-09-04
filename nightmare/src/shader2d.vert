@@ -17,7 +17,7 @@ out float red;
 
 void main() {
     mat4 _model = model;
-    _model[3][2] += rred;
+    _model[3][2] += rred; // rred is only passed through because we use it here
     gl_Position = vp * _model * vec4(position, 1.0);
     tex_coords = uv_coords;
     tex_rect = _tex_rect;
