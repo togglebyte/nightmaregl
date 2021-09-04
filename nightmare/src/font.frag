@@ -1,17 +1,17 @@
 # version 330 core
 
-out vec4 colour;
 in vec2 tex_coords;
 in vec4 tex_rect;
+in float the_red;
+
+out vec4 colour;
 
 uniform sampler2D tex;
 
 void main() {
-    vec2 the_final_coord = tex_rect.xy + tex_coords * tex_rect.zw;
+    vec2 the_final_coord = tex_rect.st + tex_coords * tex_rect.pq;
 
-    colour = vec4(1.0, 1.0, 1.0, texture(tex, the_final_coord).r);
+    float alpha = texture(tex, the_final_coord).r;
 
-    if (colour.a == 0.0) {
-        discard;
-    }
+    colour = vec4(the_red, 0.7, 0.2, alpha);
 }

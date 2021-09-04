@@ -197,7 +197,6 @@ impl Text {
                 );
                 // sprite.texture_rect.set_origin(tex_offset);
                 sprite.texture_rect.set_origin(offset);
-                eprintln!("{:?}", size);
                 // sprite.texture_rect.set_size(size * scale);
                 sprite.texture_rect.set_size(size);
                 sprite.size = size;

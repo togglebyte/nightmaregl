@@ -7,6 +7,7 @@ use nalgebra::Matrix4;
 
 use crate::Result;
 use crate::errors::NightmareError;
+use crate::render::UniformLocation;
 
 // -----------------------------------------------------------------------------
 //     - Shader types -
@@ -97,7 +98,7 @@ impl ShaderProgram {
         glUseProgram(self.0);
     }
 
-    pub fn get_uniform_location(&self, name: &CStr) -> Result<i32> {
+    pub fn get_uniform_location(&self, name: &CStr) -> Result<UniformLocation> {
         let uniform_loc = unsafe { glGetUniformLocation(self.0, name.as_ptr().cast()) };
         if uniform_loc == -1 {
             return Err(NightmareError::ShaderProgram(format!(
@@ -106,34 +107,30 @@ impl ShaderProgram {
             )));
         }
 
-        Ok(uniform_loc)
+        Ok(UniformLocation(uniform_loc))
     }
 
-    pub fn set_uniform_matrix_array(&self, matrix: &[Matrix4<f32>], loc: i32) {
+    pub fn set_uniform_matrix_array(&self, matrix: &[Matrix4<f32>], loc: UniformLocation) {
         let transpose = false as u8;
-        unsafe { glUniformMatrix4fv(loc, matrix.len() as i32, transpose, matrix.as_ptr().cast()) };
+        unsafe { glUniformMatrix4fv(loc.0, matrix.len() as i32, transpose, matrix.as_ptr().cast()) };
     }
 
-    pub fn set_uniform_matrix(&self, matrix: Matrix4<f32>, loc: i32) {
+    pub fn set_uniform_matrix(&self, matrix: Matrix4<f32>, loc: UniformLocation) {
         let transpose = false as u8;
-        unsafe { glUniformMatrix4fv(loc, 1, transpose, matrix.as_ptr()) };
+        unsafe { glUniformMatrix4fv(loc.0, 1, transpose, matrix.as_ptr()) };
     }
 
-    pub fn set_uniform_float(&self, f: f32, loc: i32) {
-        unsafe { glUniform1f(loc, f) };
+    pub fn set_uniform_float(&self, val: f32, loc: UniformLocation) {
+        unsafe { glUniform1f(loc.0, val) };
     }
 
-    // pub fn default() -> Result<Self> {
-    //     let vertex_shader = Shader::default_vertex()?;
-    //     let fragment_shader = Shader::default_fragment()?;
-    //     Self::new(vertex_shader, fragment_shader)
-    // }
+    pub fn set_uniform_vec4(&self, val: [f32;4], loc: UniformLocation) {
+        unsafe { glUniform4f(loc.0, val[0], val[1], val[2], val[3]) };
+    }
 
-    // pub fn default_font() -> Result<Self> {
-    //     let vertex_shader = Shader::default_vertex()?;
-    //     let fragment_shader = Shader::default_font()?;
-    //     Self::new(vertex_shader, fragment_shader)
-    // }
+    pub fn set_uniform_vec3(&self, val: [f32;3], loc: UniformLocation) {
+        unsafe { glUniform3f(loc.0, val[0], val[1], val[2]) };
+    }
 
     pub fn new(vertex: Shader<VertexShader>, fragment: Shader<FragmentShader>) -> Result<Self> {
         let shader_program = ShaderProgram(glCreateProgram());

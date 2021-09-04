@@ -3,6 +3,9 @@ use gl33::*;
 
 use crate::Color;
 
+#[derive(Debug, Copy, Clone)]
+pub struct UniformLocation(pub(crate) i32);
+
 /// Clear the frame buffer.
 /// ```
 /// use nightmaregl::Color;

@@ -3,11 +3,18 @@ use std::ffi::CStr;
 use nalgebra::Matrix4;
 use crate::shaders::{ShaderProgram, Shader};
 use crate::vertexpointers::{VertexPointers, ToVertexPointers, Location, ParamCount, Divisor, GlType};
-use crate::render::instanced_draw;
+use crate::render::{UniformLocation, instanced_draw};
 use crate::{Vao, Vbo, Context, Result, Rect};
 
 pub const VERTEX_SHADER: &[u8] = include_bytes!("shader2d.vert");
 pub const FRAGMENT_SHADER: &[u8] = include_bytes!("shader2d.frag");
+
+pub enum Uniform {
+    Matrix(Matrix4<f32>),
+    Vec4([f32;4]),
+    Vec3([f32;3]),
+    Float(f32),
+}
 
 #[repr(C)]
 #[derive(Debug)]
@@ -133,7 +140,7 @@ impl Render2d {
 
 pub struct SimpleRenderer<T: ToVertexPointers> {
     inner: Render2d,
-    vp_loc: i32, 
+    vp_loc: UniformLocation, 
     vbo: Vbo<T>,
     vao: Vao,
 }
@@ -190,8 +197,25 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
     }
 
     pub fn set_view_projection(&mut self, vp: Matrix4<f32>) {
+        self.set_uniform(Uniform::Matrix(vp), self.vp_loc);
+    }
+
+    pub fn get_uniform(&self, name: impl AsRef<str>) -> Option<UniformLocation> {
+        let mut bytes = name.as_ref().as_bytes().to_vec();
+        bytes.push(b'\0');
+        let c_str_name = std::ffi::CStr::from_bytes_with_nul(&bytes).expect("Failed to get uniform name.");
+        let loc = self.inner.shader_program.get_uniform_location(c_str_name).ok()?;
+        Some(loc)
+    }
+
+    pub fn set_uniform(&mut self, uniform: Uniform, loc: UniformLocation) {
         self.inner.shader_program.enable();
-        self.inner.shader_program.set_uniform_matrix(vp, self.vp_loc);
+        match uniform {
+            Uniform::Matrix(val) => self.inner.shader_program.set_uniform_matrix(val, loc),
+            Uniform::Vec4(val) => self.inner.shader_program.set_uniform_vec4(val, loc),
+            Uniform::Vec3(val) => self.inner.shader_program.set_uniform_vec3(val, loc),
+            Uniform::Float(val) => self.inner.shader_program.set_uniform_float(val, loc),
+        }
     }
 }
 
