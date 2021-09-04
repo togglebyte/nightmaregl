@@ -33,15 +33,16 @@ fn main() -> Result<()> {
     let shader = default_font_shader()?;
     renderer.set_shader(shader, viewport.view_projection());
     let colour_loc = renderer.get_uniform("red").unwrap();
-    renderer.set_uniform(Uniform::Float(10.5), colour_loc);
+    renderer.set_uniform(Uniform::Float(100.0), colour_loc);
 
     // -----------------------------------------------------------------------------
     //     - Text -
     // -----------------------------------------------------------------------------
     let font_size = 40.0;
     let mut text = Text::from_path("examples/hack.ttf", font_size, WordWrap::NoWrap, &context)?;
-    text.set_text("ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-    text.position(viewport.centre());
+    text.set_text("456Q123ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    let pos = Position::new(100.0, viewport.centre().y);
+    text.position(pos);
 
     // -----------------------------------------------------------------------------
     //     - Event loop -

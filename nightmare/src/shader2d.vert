@@ -13,13 +13,11 @@ uniform float red;
 
 out vec2 tex_coords;
 out vec4 tex_rect;
-// out float the_red;
+out float the_red;
 
 void main() {
-    vec3 _position = position;
-    _position.y += red;
-    gl_Position = vp * model * vec4(_position, 1.0);
+    gl_Position = vp * model * vec4(position, 1.0);
     tex_coords = uv_coords;
     tex_rect = _tex_rect;
-    // the_red = 1.0;
+    the_red = red;
 }
