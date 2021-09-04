@@ -33,7 +33,7 @@ fn main() -> Result<()> {
     let shader = default_font_shader()?;
     renderer.set_shader(shader, viewport.view_projection());
     let colour_loc = renderer.get_uniform("red").unwrap();
-    renderer.set_uniform(Uniform::Float(0.123), colour_loc);
+    renderer.set_uniform(Uniform::Float(10.5), colour_loc);
 
     // -----------------------------------------------------------------------------
     //     - Text -
