@@ -32,8 +32,10 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let shader = default_font_shader()?;
     renderer.set_shader(shader, viewport.view_projection());
-    let colour_loc = renderer.get_uniform("rred").unwrap();
-    renderer.set_uniform(Uniform::Float(1.0), colour_loc);
+    if let Some(colour_loc) = renderer.get_uniform("col") {
+        eprintln!("setting colour");
+        renderer.set_uniform(Uniform::Vec3([1.0, 1.0, 1.0]), colour_loc);
+    }
 
     // -----------------------------------------------------------------------------
     //     - Text -

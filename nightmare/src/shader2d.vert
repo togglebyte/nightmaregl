@@ -9,17 +9,15 @@ layout (location = 7) in vec4 _tex_rect;
 
 // View projection
 uniform mat4 vp;
-uniform float rred;
 
 out vec2 tex_coords;
 out vec4 tex_rect;
-out float red;
 
 void main() {
-    mat4 _model = model;
-    _model[3][2] += rred; // rred is only passed through because we use it here
-    gl_Position = vp * _model * vec4(position, 1.0);
+    // mat4 _model = model;
+    // _model[3][2] += rred; // rred is only passed through because we use it here
+    gl_Position = vp * model * vec4(position, 1.0);
     tex_coords = uv_coords;
     tex_rect = _tex_rect;
-    red = rred;
+    // red = rred;
 }
