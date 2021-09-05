@@ -150,7 +150,10 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
         let vertex_shader = Shader::new_vertex(VERTEX_SHADER)?;
         let fragment_shader = Shader::new_fragment(FRAGMENT_SHADER)?;
 
+        // Setup (and enable) the shader
         let shader_program = ShaderProgram::new(vertex_shader, fragment_shader)?;
+        context.enable_shader(&shader_program);
+
         let vp_uniform_name = CStr::from_bytes_with_nul(b"vp\0").expect("invalid c string");
         let vp_loc = shader_program.get_uniform_location(vp_uniform_name)?;
 
@@ -177,6 +180,7 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
     }
 
     pub fn set_shader(&mut self, shader: ShaderProgram, vp: Matrix4<f32>, context: &mut Context) {
+        context.enable_shader(&shader);
         let vp_uniform_name = CStr::from_bytes_with_nul(b"vp\0").unwrap();
         let vp_loc = self.inner.shader_program.get_uniform_location(vp_uniform_name).unwrap();
 

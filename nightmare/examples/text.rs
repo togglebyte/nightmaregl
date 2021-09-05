@@ -34,7 +34,7 @@ fn main() -> Result<()> {
     renderer.set_shader(shader, viewport.view_projection(), &mut context);
     if let Some(colour_loc) = renderer.get_uniform("col") {
         eprintln!("setting colour");
-        renderer.set_uniform(Uniform::Vec3([0.4, 0.0, 1.0]), colour_loc, &mut context);
+        renderer.set_uniform(Uniform::Vec3([0.0, 0.0, 0.0]), colour_loc, &mut context);
     }
 
     // -----------------------------------------------------------------------------
@@ -86,12 +86,12 @@ fn main() -> Result<()> {
                 state: ButtonState::Pressed
             } => {
                 match key {
-                    Key::A => colours[0] += 0.2,
-                    Key::S => colours[1] += 0.2,
-                    Key::D => colours[2] += 0.2,
-                    Key::Z => colours[0] -= 0.2,
-                    Key::X => colours[1] -= 0.2,
-                    Key::C => colours[2] -= 0.2,
+                    Key::A => colours[0] += 0.1,
+                    Key::S => colours[1] += 0.1,
+                    Key::D => colours[2] += 0.1,
+                    Key::Z => colours[0] -= 0.1,
+                    Key::X => colours[1] -= 0.1,
+                    Key::C => colours[2] -= 0.1,
                     _ => {}
                 }
 

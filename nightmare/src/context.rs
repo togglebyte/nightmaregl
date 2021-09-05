@@ -195,7 +195,7 @@ impl ContextBuilder {
             inner: context,
             current_vao_id: 0,
             current_vbo_id: 0,
-            current_shader_program_id: 0,
+            current_shader_program_id: None,
         };
 
         Ok((event_loop, inst))
@@ -248,7 +248,7 @@ pub struct Context {
     inner: ContextWrapper<PossiblyCurrent, Window>,
     current_vao_id: u32,
     current_vbo_id: u32,
-    current_shader_program_id: u32, 
+    current_shader_program_id: Option<u32>, 
 }
 
 impl Context {
@@ -278,9 +278,12 @@ impl Context {
     /// This is cheap to run as it won't enable it if it's already
     /// enabled.
     pub fn enable_shader(&mut self, shader_program: &ShaderProgram) {
-        if self.current_shader_program_id != shader_program.0 {
-            self.current_shader_program_id = shader_program.0;
-            glUseProgram(shader_program.0);
+        match self.current_shader_program_id {
+            Some(shader_id) if shader_id == shader_program.0 => {}
+            Some(_) | None => {
+                self.current_shader_program_id = Some(shader_program.0);
+                glUseProgram(shader_program.0);
+            }
         }
     }
 
