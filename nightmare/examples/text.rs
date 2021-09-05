@@ -1,4 +1,4 @@
-use nightmare::events::{Event, EventLoop, Key, LoopAction};
+use nightmare::events::{Event, EventLoop, ButtonState, Key, LoopAction};
 use nightmare::texture::Texture;
 use nightmare::text::{WordWrap, Text, default_font_shader};
 use nightmare::render2d::{Model, SimpleRenderer, Uniform};
@@ -31,10 +31,10 @@ fn main() -> Result<()> {
     //     - Text shader -
     // -----------------------------------------------------------------------------
     let shader = default_font_shader()?;
-    renderer.set_shader(shader, viewport.view_projection());
+    renderer.set_shader(shader, viewport.view_projection(), &mut context);
     if let Some(colour_loc) = renderer.get_uniform("col") {
         eprintln!("setting colour");
-        renderer.set_uniform(Uniform::Vec3([1.0, 1.0, 1.0]), colour_loc);
+        renderer.set_uniform(Uniform::Vec3([0.4, 0.0, 1.0]), colour_loc, &mut context);
     }
 
     // -----------------------------------------------------------------------------
@@ -45,6 +45,11 @@ fn main() -> Result<()> {
     text.set_text("456Q123ABCDEFGHIJKLMNOPQRSTUVWXYZ");
     let pos = Position::new(100.0, viewport.centre().y);
     text.position(pos);
+
+    // -----------------------------------------------------------------------------
+    //     - Colours -
+    // -----------------------------------------------------------------------------
+    let mut colours = [0.0, 0.0, 0.0];
 
     // -----------------------------------------------------------------------------
     //     - Event loop -
@@ -76,6 +81,31 @@ fn main() -> Result<()> {
             Event::Key {
                 key: Key::Escape, ..
             } => return LoopAction::Quit,
+            Event::Key {
+                key, 
+                state: ButtonState::Pressed
+            } => {
+                match key {
+                    Key::A => colours[0] += 0.2,
+                    Key::S => colours[1] += 0.2,
+                    Key::D => colours[2] += 0.2,
+                    Key::Z => colours[0] -= 0.2,
+                    Key::X => colours[1] -= 0.2,
+                    Key::C => colours[2] -= 0.2,
+                    _ => {}
+                }
+
+                for val in &mut colours {
+                    if *val > 1.0 {
+                        *val = 1.0;
+                    }
+                    if *val < 0.0 {
+                        *val = 0.0;
+                    }
+                }
+
+                renderer.get_uniform("col").map(|colour_loc| renderer.set_uniform(Uniform::Vec3(colours), colour_loc, &mut context));
+            }
             Event::Char('q') => return LoopAction::Quit,
             _ => {}
         }

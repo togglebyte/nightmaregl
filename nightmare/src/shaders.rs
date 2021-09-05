@@ -94,10 +94,6 @@ impl ShaderProgram {
         glDeleteShader(shader_id);
     }
 
-    pub fn enable(&self) {
-        glUseProgram(self.0);
-    }
-
     pub fn get_uniform_location(&self, name: &CStr) -> Result<UniformLocation> {
         let uniform_loc = unsafe { glGetUniformLocation(self.0, name.as_ptr().cast()) };
         if uniform_loc == -1 {

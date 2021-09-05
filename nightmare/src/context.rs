@@ -280,7 +280,7 @@ impl Context {
     pub fn enable_shader(&mut self, shader_program: &ShaderProgram) {
         if self.current_shader_program_id != shader_program.0 {
             self.current_shader_program_id = shader_program.0;
-            shader_program.enable();
+            glUseProgram(shader_program.0);
         }
     }
 

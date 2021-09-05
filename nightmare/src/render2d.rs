@@ -167,7 +167,7 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
             vao, 
         };
 
-        inst.set_view_projection(vp);
+        inst.set_view_projection(vp, context);
 
         Ok(inst)
     }
@@ -176,13 +176,13 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
         self.vbo.load_data(context, data);
     }
 
-    pub fn set_shader(&mut self, shader: ShaderProgram, vp: Matrix4<f32>) {
+    pub fn set_shader(&mut self, shader: ShaderProgram, vp: Matrix4<f32>, context: &mut Context) {
         let vp_uniform_name = CStr::from_bytes_with_nul(b"vp\0").unwrap();
         let vp_loc = self.inner.shader_program.get_uniform_location(vp_uniform_name).unwrap();
 
         self.vp_loc = vp_loc;
         self.inner.shader_program = shader;
-        self.set_view_projection(vp);
+        self.set_view_projection(vp, context);
     }
 
     pub fn render_instanced(&mut self, context: &mut Context, instance_count: usize) {
@@ -196,8 +196,8 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
         );
     }
 
-    pub fn set_view_projection(&mut self, vp: Matrix4<f32>) {
-        self.set_uniform(Uniform::Matrix(vp), self.vp_loc);
+    pub fn set_view_projection(&mut self, vp: Matrix4<f32>, context: &mut Context) {
+        self.set_uniform(Uniform::Matrix(vp), self.vp_loc, context);
     }
 
     pub fn get_uniform(&self, name: impl AsRef<str>) -> Option<UniformLocation> {
@@ -208,8 +208,8 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
         Some(loc)
     }
 
-    pub fn set_uniform(&mut self, uniform: Uniform, loc: UniformLocation) {
-        self.inner.shader_program.enable();
+    pub fn set_uniform(&mut self, uniform: Uniform, loc: UniformLocation, context: &mut Context) {
+        context.enable_shader(&self.inner.shader_program);
         match uniform {
             Uniform::Matrix(val) => self.inner.shader_program.set_uniform_matrix(val, loc),
             Uniform::Vec4(val) => self.inner.shader_program.set_uniform_vec4(val, loc),
