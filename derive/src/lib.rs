@@ -110,7 +110,7 @@ pub fn vertex_data(tokens: TokenStream) -> TokenStream {
     let fields = process_fields(&fields, name.clone());
 
     let modified = quote! {
-        impl nightmare::vertexpointers::VertexPointersT for #name {
+        impl nightmare::vertexpointers::ToVertexPointers for #name {
             fn vertex_pointer(vp: &mut nightmare::vertexpointers::VertexPointers) {
                 #(#fields)*;
             }
