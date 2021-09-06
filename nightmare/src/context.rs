@@ -281,6 +281,7 @@ impl Context {
         match self.current_shader_program_id {
             Some(shader_id) if shader_id == shader_program.0 => {}
             Some(_) | None => {
+                eprintln!("shader set to {}", shader_program.0);
                 self.current_shader_program_id = Some(shader_program.0);
                 glUseProgram(shader_program.0);
             }

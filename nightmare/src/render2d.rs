@@ -182,7 +182,7 @@ impl<T: ToVertexPointers> SimpleRenderer<T> {
     pub fn set_shader(&mut self, shader: ShaderProgram, vp: Matrix4<f32>, context: &mut Context) {
         context.enable_shader(&shader);
         let vp_uniform_name = CStr::from_bytes_with_nul(b"vp\0").unwrap();
-        let vp_loc = self.inner.shader_program.get_uniform_location(vp_uniform_name).unwrap();
+        let vp_loc = shader.get_uniform_location(vp_uniform_name).unwrap();
 
         self.vp_loc = vp_loc;
         self.inner.shader_program = shader;
