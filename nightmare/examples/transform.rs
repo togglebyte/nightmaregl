@@ -22,7 +22,7 @@ fn main() -> Result<()> {
     //     (meaning each pixel drawn, will be 8 times as big)
     // -----------------------------------------------------------------------------
     let window_size = context.window_size();
-    let viewport = Viewport::new(Position::zero(), window_size);
+    let viewport = Viewport::new(Position::zeros(), window_size);
 
     let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
 
@@ -36,17 +36,23 @@ fn main() -> Result<()> {
     let mut buny_sprite = Sprite::new(&buny);
 
     // Set the anchor point / pivot point to the centre of the sprite
-    buny_sprite.anchor = (buny_sprite.size / 2.0).to_vector();
+    buny_sprite.anchor = (buny_sprite.size / 2.0);
 
-    let mut buny_transform = Transform::default();
-    // buny_transform.scale_mut(Vector::new(8.0, 8.0));
+    // Create the transformation that will:
+    // * Move
+    // * Rotate
+    // * Scale
+    // The buny
+    let mut buny_transform = Transform::identity();
 
-    // Create a position that is the centre of the screen.
-    // Because the pixel size is 8, the position has to be divided by 8.
-    let buny_pos = (viewport.size().cast() / 2.0f32).to_vector();
+    // Get the centre of the screen
+    let buny_pos = (viewport.size() / 2.0);
 
-    // Translate the transform to the new position.
-    buny_transform.translate_mut(buny_pos);
+    // Scale the buny four times, and translate the 
+    // transform to the new position.
+    // It is important that the scale / translation happens in this order.
+    buny_transform.append_scaling_mut(4.0); 
+    buny_transform.append_translation_mut(&buny_pos.into());
 
     // -----------------------------------------------------------------------------
     //     - Second sprite, texture and transform -
@@ -55,13 +61,13 @@ fn main() -> Result<()> {
     let arrow_texture = Texture::from_disk("examples/transform.png")?;
     let mut arrow = Sprite::new(&arrow_texture);
     arrow.z_index = 1;
-    // arrow.anchor = (arrow.size / 2.0).to_vector();
-    let mut arrow_transform = Transform::default();
+    arrow.anchor = (arrow.size / 2.0);
+    let mut arrow_transform = Transform::identity();
 
-    // Place this to the right of the buny sprite.
-    // Note that the values for the position reflects the original
-    // size and anchor point of the buny sprite.
-    arrow_transform.translate_mut(Position::new(1.0, 0.0));
+    // Place this to above the buny sprite.
+    // Note that the values for the position is relative to the buny sprite
+    // as the final transform for the arrow is:
+    // buny_transform * arrow transform
 
     let now = Instant::now();
 
@@ -72,7 +78,7 @@ fn main() -> Result<()> {
 
                 // Get the vertex data for the buny sprite
                 let bunny_model = create_model_matrix(&buny_sprite, &buny_transform);
-                let model = Model::new(bunny_model);
+                let model = Model::new(bunny_model, buny_sprite.texture_rect);
 
                 // Render the buny
                 buny.bind();
@@ -80,14 +86,19 @@ fn main() -> Result<()> {
                 renderer.render_instanced(&mut context, 1);
 
                 // Rotate the buny sprite.
-                // let rot = Rotation::radians(now.elapsed().as_secs_f64().sin() as f32);
-                // buny_transform.rotate_mut(rot);
+                let rot = Rotation::new(now.elapsed().as_secs_f64().sin() as f32);
+                // buny_transform.append_rotation_mut(&rot.into());
+                buny_transform.isometry.rotation = rot.into();
 
-                let mut arrow_model = create_model_matrix(&arrow, &arrow_transform);
+                // Translate the arrow transform before multiplying it with the 
+                // buny transform, so it rotates around the bunys axis
+                arrow_transform.isometry.translation = Position::new(0.0, 32.0 + 16.0).into();
+                
                 // Make the arrow vertex data relative to the buny.
-                arrow_model = bunny_model * arrow_model;
-                let model = Model::new(arrow_model);
-                // arrow_vertex_data.make_relative(&buny_transform);
+                let mut at = buny_transform * arrow_transform;
+                let mut arrow_model = create_model_matrix(&arrow, &at);
+
+                let model = Model::new(arrow_model, arrow.texture_rect);
 
                 // Render the arrow
                 arrow_texture.bind();

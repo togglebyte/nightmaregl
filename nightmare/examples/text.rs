@@ -25,7 +25,7 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let window_size = context.window_size();
     let mut viewport = Viewport::new(Position::zeros(), window_size);
-    let mut renderer = SimpleRenderer::<Model>::new(&mut context, viewport.view_projection())?;
+    let mut renderer = SimpleRenderer::new(&mut context, viewport.view_projection())?;
 
     // -----------------------------------------------------------------------------
     //     - Text shader -
@@ -42,7 +42,7 @@ fn main() -> Result<()> {
     // -----------------------------------------------------------------------------
     let font_size = 40.0;
     let mut text = Text::from_path("examples/hack.ttf", font_size, WordWrap::NoWrap, &context)?;
-    text.set_text("456Q123ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    text.set_text("Hello world");
     let pos = Position::new(100.0, viewport.centre().y);
     text.position(pos);
 
